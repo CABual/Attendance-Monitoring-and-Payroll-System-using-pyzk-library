@@ -1,0 +1,256 @@
+{% extends 'layouts/layout.html' %}
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <h1 class="card-title">attendances</h1>
+        <div class="table-responsive">
+            <form id="form_add">
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-md-3 col-sm-4">
+                        {{ form.timestamp.label_tag }}
+                        {{ form.timestamp }}
+                    </div>
+                    <div class="col-md-3 col-sm-4">
+                        {{ form.employee.label_tag }}
+                        {{ form.employee }}
+                    </div>
+                    <div class="col-md-3 col-sm-4 d-flex align-content-bottom">
+                        <button class="btn btn-primary" type="submit">Add</button>
+
+                    </div>
+                </div>
+            </form>
+            <table class="table table-bordered table-hover table-striped" id="table_records">
+                <thead>
+                    <tr>
+                        <td>ID</td>
+                        <td>UID</td>
+                        <td>Employee Name(Device)</td>
+                        <td>Timestamp</td>
+                        <td>Status</td>
+                        <td>Punch</td>
+                        <td>Employee ID</td>
+                        <td>Method</td>
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modal_delete">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <h5 class="modal-title">Delete Attendance</h5>
+            <form id="form_delete">
+                {% csrf_token %}
+                <input type="hidden" name="id">
+                <p>Are you sure you want to delete?</p>
+                <button class="btn btn-secondary"data-dismiss="modal">Close</button>
+                <button class="btn btn-danger" type="submit">Confirm</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+<div class="modal fade" id="modal_edit">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <h5 class="modal-title">Edit Attendace</h5>
+            <form action="" id="form_edit">
+                {% csrf_token %}
+                <input type="hidden" name="id">
+                <div class="modal-body">
+                    {{ form }}
+                    {% comment %} <div class="row"> 
+                        <div class="col-md-3 col-sm-4">
+                            {{ form.timestamp.label_tag }}
+                            {{ form.timestamp }}
+                        </div>
+                        <div class="col-md-3 col-sm-4">
+                            {{ form.employee.label_tag }}
+                            {{ form.employee }}
+                        </div>
+                    </div> {% endcomment %}
+   
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="submit">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% comment %}
+{% load static %}
+<script src="{% static 'attendance.js' %}"></script> {% endcomment %}
+<script>
+    $(document).ready(function() {
+        $("#form_add").submit(function(event) {
+            event.preventDefault()
+            var form = $(this)
+            var formData = new FormData(form[0])
+            $.ajax({
+                type: "POST",
+                url: "/biometrics/attendances/add/",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    console.log(response)
+                    form.trigger('reset')
+                    employees_table.ajax.reload()
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    console.log(xhr, status, error);
+                }
+            });
+        })
+        $("#form_edit").submit(function(event){
+            event.preventDefault()
+            var form = $(this)
+            var formData = new FormData(form[0])
+            var id = formData.get('id')
+            $.ajax({
+                type: "POST",
+                url: `/biometrics/attendances/update/${id}/`,
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    console.log(response)
+                    form.trigger('reset')
+                    $("#modal_edit").modal('hide')
+                    employees_table.ajax.reload()
+                }
+            });
+        })
+
+        $("#table_records").on('click', '.btn_edit', function(event) {
+            event.preventDefault()
+            var id = $(this).data('id')
+            var modal_edit = $("#modal_edit")
+            $.ajax({
+                type: "GET",
+                url: `/biometrics/attendances/fetch/${id}/`,
+                success: function(response) {
+                    console.log(response)
+                    const keys = Object.keys(response);
+                    keys.sort();
+
+                    for (const key of keys) {
+                        modal_edit.find(`input[name='${key}']`).val(response[key])
+                        modal_edit.find(`select[name='${key}']`).val(response[key])
+                    }
+                    modal_edit.modal('show')
+                }
+            });
+        })
+        $("#table_records").on('click', '.btn_delete', function(event) {
+            event.preventDefault()
+            var id = $(this).data('id')
+            var modal_delete = $("#modal_delete")
+            modal_delete.find('input[name="id"]').val(id)
+            modal_delete.modal('show')
+
+
+        })
+        $("#form_delete").submit(function(event){
+            event.preventDefault()
+            var form = $(this)
+            var id = form.find('input[name="id"]').val()
+            var formData = new FormData(form[0])
+            $.ajax({
+                type: "POST",
+                url:  `/biometrics/attendances/delete/${id}/`,
+                data:  formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    console.log(response)
+                    form.trigger('reset')
+                    $("#modal_delete").modal('hide')
+                    employees_table.ajax.reload()
+                },
+                error: function (response) {
+                    console.log(response)
+                }
+            });
+        })
+        $.ajax({
+            type: "GET",
+            url: "/biometrics/attendances/fetch/",
+            success: function(response) {
+                console.log(response)
+            }
+        });
+        const employees_table = new DataTable("#table_records", {
+            autoTableLayout: true,
+            ordering: false,
+            // autoWidth: true,
+            ajax: {
+                type: "GET",
+                url: "/biometrics/attendances/fetch/",
+                dataSrc: 'records',
+            },
+            language: {
+                error: function(errors, settings, techNote, table) {
+                    // Display the error message
+                    console.log(errors);
+                }
+            },
+            columns: [{
+                    data: 'id'
+                },
+                {
+                    data: 'uid'
+                },
+                {
+                    data: 'employee__dv_name'
+                },
+                {
+                    render: function(data, type, row) {
+                        let timestamp = row.timestamp;
+                        let date = new Date(timestamp);
+                        return row.timestamp
+                    }
+                },
+                {
+                    data: 'status'
+                },
+                {
+                    data: 'punch'
+                },
+                {
+                    data: 'employee_id'
+                },
+                {
+                    render: function(data, type, row) {
+                        return `
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMethods" data-bs-toggle="dropdown" aria-expanded="false">
+                               Option
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMethods">
+                                <li><button class="dropdown-item btn-warning btn_edit" data-id="${row.id}">Edit</button></li>
+                                <li><button class="dropdown-item btn-danger btn_delete" data-id="${row.id}">Delete</button></li>
+                            </ul>
+                        </div>
+                        `
+                    }
+                }
+            ],
+
+            createdRow: function(row, data, index) {
+                $(row).attr('data-id', data.id);
+
+            },
+        });
+    });
+</script>
+{% endblock %}

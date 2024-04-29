@@ -1,0 +1,156 @@
+{% extends 'layouts/layout.html' %}
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <h1 class="card-title">attendances</h1>
+        <div class="table-responsive">
+            <form id="form_filter">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-3 col-sm-4">
+                        <label for="">Start</label>
+                        <input type="date" class="form-control" id="startDate" name="start_date">
+                    </div>
+                    <div class="col-md-3 col-sm-4">
+                        <label for="">End</label>
+                        <input type="date" class="form-control" id="endDate" name="end_date">
+                    </div>
+                    <div class="col-md-3 col-sm-4 d-flex align-content-bottom">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                        <button class="btn btn-primary" id="btn-export">Export</button>
+                    </div>
+                </div>
+            </form>
+            
+            <table class="table table-bordered table-hover table-striped" id="table_records">
+                <thead>
+                    <tr>
+                        <td>Date</td>
+                        <td>Employee ID</td>
+                        <td>User Id (Device)</td>
+                        <td>Employee Name(Device)</td>
+                        <td>Time In</td>
+                        <td>Time Out</td>
+                        <td>Is Late</td>
+                        <td>Is Overtime</td>
+
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+
+
+    </div>
+    <div class="card-footer"></div>
+</div>
+
+
+{% comment %}
+{% load static %}
+<script src="{% static 'attendance.js' %}"></script> {% endcomment %}
+<script>
+
+    $.ajax({
+        type: "GET",
+        url: "/hr/attendances/fetch/",
+        success: function(response) {
+            console.log(response)
+        },
+        error: function(xhr, status, error) {
+            console.error(xhr.responseText);
+            console.log(xhr, status, error);
+        }
+    });
+    $(document).ready(function() {
+        $("#form_filter").submit(function(event) {
+            event.preventDefault()
+            form = $(this)
+            var formData = new FormData(form[0])
+            var startDate = $("#startDate").val().trim(); // Get the start date value
+            var endDate = $("#endDate").val().trim(); // Get the end date value
+
+            // Perform custom search based on date range
+            attendance_table
+                .column(3)
+                .search((d) => d > 50)
+                .draw();
+            
+        })
+        $("#btn-export").click(function(event) {
+            event.preventDefault()
+            $.ajax({
+                type: "GET",
+                url: "/hr/attendances/download/",
+                success: function(response) {
+                    console.log(response)
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    console.log(xhr, status, error);
+                }
+            });
+        })
+        const attendance_table = new DataTable("#table_records", {
+            autoTableLayout: true,
+            ordering: false,
+            // autoWidth: true,
+            ajax: {
+                type: "GET",
+                url: "/hr/attendances/fetch/",
+                dataSrc: 'records',
+            },
+            language: {
+                error: function(errors, settings, techNote, table) {
+                    // Display the error message
+                    console.log(errors);
+                }
+            },
+            columns: [{
+                    render: function(data, type, row) {
+                        var date = new Date(row.date);
+                        var months = ["January", "February", "March", "April", "May", "June",
+                            "July", "August", "September", "October", "November", "December"
+                        ];
+                        var year = date.getFullYear();
+                        var month = months[date.getMonth()];
+                        var day = date.getDate();
+                        var text = month + " " + day + ", " + year;
+                        return text
+                    }
+                },
+                {
+                    data: 'employee_id',
+                    searchable: true
+                },
+                {
+                    data: 'employe__dv_user_id'
+                },
+
+                {
+                    data: 'employee__dv_name'
+                },
+                {
+                    data: 'time_in'
+                },
+                {
+                    data: 'time_out'
+                },
+                {
+                    data: 'is_late'
+                },
+                {
+                    data: 'is_overtime'
+                }
+            ],
+
+            createdRow: function(row, data, index) {
+                $(row).attr('data-id', data.id);
+
+            },
+        });
+    });
+</script>
+{% endblock %}

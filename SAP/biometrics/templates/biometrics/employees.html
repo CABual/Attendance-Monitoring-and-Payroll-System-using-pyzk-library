@@ -1,0 +1,273 @@
+{% extends 'layouts/layout.html' %}
+{% block content %}
+{% comment %} <button class="btn btn-primary" id="btn_download_attendances">Download Attendances</button>
+<button class="btn btn-primary" id="btn_download_employees">Download Employees</button> {% endcomment %}
+<div class="card">
+    <div class="card-body">
+        <h1 class="card-title">Employees</h1>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover table-striped" id="table_records">
+                <thead>
+                    <tr>
+                        <td>ID</td>
+                        <td>Name (Device)</td>
+                        <td>Position</td>
+                        <td>Last Name</td>
+                        <td>First Name</td>
+                        <td>Middle Name</td>
+                        <td>Suffix</td>
+                        <td>Date Hired</td>
+                        <td>Birthday</td>
+                        <td>Birthplace</td>
+                        <td>Civil Status</td>
+                        <td>Gender</td>
+                        <td>Mobile Number</td>
+                        <td>User ID (Device)</td>
+                        <td>Method</td>
+                    </tr>
+                </thead>
+                <tbody>
+
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer"></div>
+</div>
+<div class="modal fade" id="modal_edit">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Employee</h5>
+            </div>
+            <form action="" id="form_edit">
+                {% csrf_token %}
+                <input type="hidden" name="id" id="">
+                <div class="modal-body">
+                    <input type="hidden" name="id">
+                    <div class="row">
+                        <div class="form-group col-sm-6">
+                            <label for="" class="form-label">User Id</label>
+                            <input type="text" class="form-control" name="dv_user_id" disabled>
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <label for="" class="form-label">Name</label>
+                            <input type="text" class="form-control" name="dv_name" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="" class="form-label">Position</label>
+                            <input type="text" class="form-control" name="position">
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <label for="" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" name="last_name">
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <label for="" class="form-label">First Name</label>
+                            <input type="text" class="form-control" name="first_name">
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <label for="" class="form-label">Middle Name</label>
+                            <input type="text" class="form-control" name="middle_name">
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <label for="" class="form-label">Suffix</label>
+                            <input type="text" class="form-control" name="name_suffix">
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <label for="" class="form-label">Date Hired</label>
+                            <input type="date" class="form-control" name="date_hired">
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <label for="" class="form-label">Birthday</label>
+                            <input type="date" class="form-control" name="birthday">
+                        </div>
+                        <div class="form-group">
+                            <label for="" class="form-label">Birthplace</label>
+                            <input type="text" class="form-control" name="birthplace">
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <label for="" class="form-label">Civil Status</label>
+                            <select name="civil_status" id="" class="form-select">
+                                <option selected>--SELECT--</option>
+                                <option value="SINGLE">SINGLE</option>
+                                <option value="MARRIED">MARRIED</option>
+                                <option value="SEPARATED">SEPARATED</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <label for="" class="form-label">Gender</label>
+                            <select name="gender" id="" class="form-select">
+                                <option selected>--SELECT--</option>
+                                <option value="MALE">MALE</option>
+                                <option value="FEMALE">FEMALE</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-sm-6">
+                            <label for="" class="form-label">Mobile Number</label>
+                            <input type="number" name="mobile_number" class="form-control" id="">
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- {% load static %}
+<script src="{% static 'employees.js' %}"></script> -->
+
+<script>
+    $(document).ready(function() {
+        const employees_table = new DataTable("#table_records", {
+            autoTableLayout: true,
+            // autoWidth: true,
+            ajax: {
+                type: "GET",
+                url: "/biometrics/employees/fetch/",
+                dataSrc: 'records',
+            },
+            language: {
+                error: function(errors, settings, techNote, table) {
+                    // Display the error message
+                    console.log(errors);
+                }
+            },
+
+            columns: [{
+                    data: 'id'
+                },
+                {
+                    data: 'dv_name'
+                },
+                {
+                    data: 'position'
+                },
+                {
+                    data: 'last_name'
+                },
+                {
+                    data: 'first_name'
+                },
+                {
+                    data: 'middle_name'
+                },
+                {
+                    data: 'name_suffix'
+                },
+                {
+                    data: 'date_hired'
+                },
+                {
+                    data: 'birthday'
+                },
+                {
+                    data: 'birthplace'
+                },
+                {
+                    data: 'civil_status'
+                },
+                {
+                    data: 'gender'
+                },
+                {
+                    data: 'mobile_number'
+                },
+                {
+                    data: 'dv_user_id'
+                },
+                {
+                    render: function(data, type, row) {
+                        return `
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMethods" data-bs-toggle="dropdown" aria-expanded="false">
+                               Option
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMethods">
+                                <li><button class="dropdown-item btn-warning btn_edit" data-id="${row.id}">Edit</button></li>
+                                <li><button class="dropdown-item btn-danger btn_delete" data-id="${row.id}">Delete</button></li>
+                            </ul>
+                        </div>
+                        `
+                    }
+                }
+            ],
+
+
+            createdRow: function(row, data, index) {
+                $(row).attr('data-id', data.id);
+
+            },
+        });
+        // $.ajax({
+        //     type: "get",
+        //     url: "/biometrics/employees/fetch/",
+
+        //     success: function(response) {
+        //         console.log(response)
+        //     }
+        // });
+        // $(".modal_edit")
+        $("#table_records").on('click', '.btn_edit', function(event) {
+            event.preventDefault();
+            var id = $(this).data('id')
+            console.log(id)
+            var modal_edit = $("#modal_edit")
+            $.ajax({
+                type: "GET",
+                url: "/biometrics/employees/fetch/" + id,
+                success: function(response) {
+                    console.log(response)
+                    const keys = Object.keys(response);
+                    keys.sort();
+
+                    for (const key of keys) {
+                        modal_edit.find(`input[name='${key}']`).val(response[key])
+                        modal_edit.find(`select[name='${key}']`).val(response[key])
+
+                        // console.log(`${key}: ${response[key]}`);
+                    }
+                    // console.log(response[0].fields)
+                    // console.log(response['fields'])
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    console.log(xhr, status, error);
+                }
+            })
+            modal_edit.modal('show')
+        })
+        $("#form_edit").submit(function(event) {
+            event.preventDefault()
+            var form = $(this)
+            var formData = new FormData(form[0])
+            var id = formData.get("id")
+            $.ajax({
+                type: "POST",
+                url: `/biometrics/employees/update/${id}/`,
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    console.log(response)
+                    employees_table.ajax.reload()
+                    form.trigger("reset")
+                    $('.modal').modal('hide')
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    console.log(xhr, status, error);
+                }
+            });
+        })
+
+    });
+</script>
+
+{% endblock %}

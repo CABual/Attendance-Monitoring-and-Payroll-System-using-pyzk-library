@@ -1,0 +1,5 @@
+{
+    "settings": {
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    }
+}

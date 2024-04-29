@@ -1,0 +1,10 @@
+{% extends 'layouts/layout.html' %}
+{% block content %}
+<button class="btn btn-primary" id="btn_download_attendances">Download Attendances</button>
+<button class="btn btn-primary" id="btn_download_employees">Download Employees</button>
+
+
+ {% load static %}
+<script src="{% static 'index.js' %}"></script>
+
+{% endblock %}

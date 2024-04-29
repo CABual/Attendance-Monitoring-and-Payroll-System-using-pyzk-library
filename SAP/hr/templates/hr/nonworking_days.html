@@ -1,0 +1,124 @@
+{% extends 'layouts/layout.html' %}
+{% block content %}
+
+<head>
+    {% comment %}
+    <script src="js/jquery-3.3.1.min.js"></script> {% endcomment %}
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'calendar-19/fonts/icomoon/style.css' %}">
+    <link rel="stylesheet" href="{% static 'calendar-19/fullcalendar/packages/core/main.css' %}">
+    <link rel="stylesheet" href="{% static 'calendar-19/fullcalendar/packages/daygrid/main.css' %}">
+    <link rel="stylesheet" href="{% static 'calendar-19/css/style.css' %}">
+
+</head>
+{% comment %} <button class="btn btn-primary" id="btn_download_attendances">Download Attendances</button>
+<button class="btn btn-primary" id="btn_download_employees">Download Employees</button> {% endcomment %}
+<div class="modal fade" id="modal_add">
+    <div class="modal-dialog"> 
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Non-Working Days</h5>
+            </div>
+            <form id="form_add">
+                {% csrf_token %}
+                <div class="modal-body">
+                        {{ form }}
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" type="submit">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+
+        <h1 class="card-title">Non-working Days</h1>
+
+
+        <div id='calendar'>
+        </div>
+
+        {% load static %}
+
+       
+    </div>
+</div>
+ <script src="{% static 'calendar-19/js/popper.min.js' %}"></script>
+<script src="{% static 'calendar-19/fullcalendar/packages/core/main.js' %}"></script>
+<script src="{% static 'calendar-19/fullcalendar/packages/interaction/main.js' %}"></script>
+<script src="{% static 'calendar-19/fullcalendar/packages/daygrid/main.js' %}"></script>
+
+
+<script>
+$(document).ready(function () {
+    $("#form_add").submit(function(event) {
+        event.preventDefault()
+        var form = $(this)
+        var formData = new FormData(form[0])
+        $.ajax({
+            type: "POST",
+            url: "/hr/non-working-days/add/",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                console.log(response)
+                calendar.refetchEvents();
+
+
+                form.trigger('reset')
+                $('.modal').modal('hide')
+                //employees_table.ajax.reload()
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+                console.log(xhr, status, error);
+            }
+        });
+    })
+
+    var calendarEl = document.getElementById('calendar');
+
+    // This arrangement can be altered based on how we want the date's format to appear.
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        plugins: ['interaction', 'dayGrid'],
+        defaultDate: new Date(),
+        editable: true,
+        eventLimit: true, // allow "more" link when too many events
+        header: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,dayGridWeek,dayGridDay addButton'
+        },
+        customButtons: {
+            addButton: {
+                text: 'Add',
+                click: function() {
+                    $("#modal_add").modal('show')
+
+                }
+            }
+        },
+        events: '/hr/non-working-days/fetch/',
+    });
+
+    calendar.render();
+
+});
+    //document.addEventListener('DOMContentLoaded', function() {
+       
+    //});
+</script>
+
+<script src="js/main.js"></script>
+
+{% load static %}
+{% comment %}
+<script src="{% static 'index.js' %}"></script> {% endcomment %}
+
+{% endblock %}
