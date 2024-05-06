@@ -13,7 +13,9 @@ def index(request):
     # return HttpResponse('hello, World')
     return render(request, 'biometrics/index.html')
 def employees(request):
-    return render(request, 'biometrics/employees.html')
+    context = {}
+    context['form'] = EmployeeForm()
+    return render(request, 'biometrics/employees.html', context)
 def fetch_employees(request):
     records = list(Employee.objects.values())
     
@@ -26,6 +28,8 @@ def update_employee(request, id):
     form  =  EmployeeForm(request.POST or None, instance= record)
     if form.is_valid():
         form.save()
+    print(form.is_valid())
+        
     return JsonResponse(model_to_dict(form.instance))
 
 def delete_employee(request, id):
@@ -55,8 +59,10 @@ def fetch_attendance_detail(request, id):
 def update_attendance(request, id):
     record = get_object_or_404(Attendances, id = id)
     form  =  AttendanceForm(request.POST or None, instance= record)
+    
     if form.is_valid():
         form.save()
+    # print(form.is_valid())
     return JsonResponse(model_to_dict(form.instance))
 def delete_attendance(request, id):
     record = get_object_or_404(Attendances, id = id)

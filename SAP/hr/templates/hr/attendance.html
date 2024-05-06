@@ -4,20 +4,21 @@
     <div class="card-body">
         <h1 class="card-title">attendances</h1>
         <div class="table-responsive">
-            <form id="form_filter">
+            <form id="form_add">
                 {% csrf_token %}
+
                 <div class="row">
                     <div class="col-md-3 col-sm-4">
-                        <label for="">Start</label>
-                        <input type="date" class="form-control" id="startDate" name="start_date">
+                        {{ form.timestamp.label_tag }}
+                        {{ form.timestamp }}
                     </div>
                     <div class="col-md-3 col-sm-4">
-                        <label for="">End</label>
-                        <input type="date" class="form-control" id="endDate" name="end_date">
+                        {{ form.employee.label_tag }}
+                        {{ form.employee }}
                     </div>
                     <div class="col-md-3 col-sm-4 d-flex align-content-bottom">
-                        <button class="btn btn-primary" type="submit">Search</button>
-                        <button class="btn btn-primary" id="btn-export">Export</button>
+                        <button class="btn btn-primary" type="submit">Add</button>
+
                     </div>
                 </div>
             </form>
@@ -65,20 +66,62 @@
         }
     });
     $(document).ready(function() {
-        $("#form_filter").submit(function(event) {
-            event.preventDefault()
-            form = $(this)
-            var formData = new FormData(form[0])
-            var startDate = $("#startDate").val().trim(); // Get the start date value
-            var endDate = $("#endDate").val().trim(); // Get the end date value
 
-            // Perform custom search based on date range
-            attendance_table
-                .column(3)
-                .search((d) => d > 50)
-                .draw();
-            
+        $("#form_add").submit(function(event) {
+            event.preventDefault()
+            var form = $(this)
+            var formData = new FormData(form[0])
+            $.ajax({
+                type: "POST",
+                url: "/hr/attendances/add/",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    console.log(response)
+                    form.trigger('reset')
+                    attendance_table.ajax.reload()
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    console.log(xhr, status, error);
+                }
+            });
         })
+        $("#form_edit").submit(function(event){
+            event.preventDefault()
+            var form = $(this)
+            var formData = new FormData(form[0])
+            var id = formData.get('id')
+            $.ajax({
+                type: "POST",
+                url: `/biometrics/attendances/update/${id}/`,
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    console.log(response)
+                    form.trigger('reset')
+                    $("#modal_edit").modal('hide')
+                    attendance_table.ajax.reload()
+                }
+            });
+        })
+
+        // $("#form_filter").submit(function(event) {
+        //     event.preventDefault()
+        //     form = $(this)
+        //     var formData = new FormData(form[0])
+        //     var startDate = $("#startDate").val().trim(); // Get the start date value
+        //     var endDate = $("#endDate").val().trim(); // Get the end date value
+
+        //     // Perform custom search based on date range
+        //     attendance_table
+        //         .column(3)
+        //         .search((d) => d > 50)
+        //         .draw();
+            
+        // })
         $("#btn-export").click(function(event) {
             event.preventDefault()
             $.ajax({

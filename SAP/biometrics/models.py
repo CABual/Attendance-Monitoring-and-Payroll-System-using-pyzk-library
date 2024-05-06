@@ -16,9 +16,18 @@ class Employee(models.Model):
     civil_status = models.CharField(max_length=25,null=True)
     gender = models.CharField(max_length=25, null=True)
     mobile_number = models.CharField(max_length=25, null=True)
+    base_monthly_salary = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    is_regular = models.BooleanField(default=False)
+    is_registered = models.BooleanField(default=False)
+    is_perfect_attendance = models.BooleanField(default=False)
+
 
     def __str__(self):
-        return self.dv_name
+        if(self.first_name == None):
+            self.first_name = ""
+        if(self.last_name == None):
+            self.last_name = ""
+        return f"{self.dv_name} -- {self.first_name}  {self.last_name}"
     
 class Attendances(models.Model):
     id = models.BigAutoField(primary_key=True)

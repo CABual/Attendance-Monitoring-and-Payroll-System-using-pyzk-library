@@ -1,28 +1,361 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_list_or_404, get_object_or_404
 from biometrics . models import Attendances
 from django.http import HttpResponse, JsonResponse
 from django.template import RequestContext
 from django.http import HttpResponseBadRequest
-from datetime import datetime, timedelta
+from datetime import  timedelta, time
+import datetime
 from collections import defaultdict
 from django import forms
 from django.template import RequestContext
 from django.conf import settings
 from .forms import SearchAttendanceForm, NonWorkingDaysForm
-from .models import NonWorkingDays
+from .models import *
 from django.forms.models import model_to_dict
-
+from biometrics.models import Employee
+from .forms import * 
 import pandas as pd 
 import os
+from django.views.decorators.csrf import csrf_exempt
+from dateutil import parser
+import json
+from django.core.serializers import serialize
+
+# from django.http import QueryDict
 
 # Create your views here.
+class Payroll:
+    def __init__(self, employee_info, attendances, start_date, end_date):
+        self.start_date = start_date
+        self.end_date = end_date
+        self.employee_info = employee_info
+        self.attendances = attendances
+        self.timeInOut = self.compute_timeInOut()
+        self.half_salary = self.employee_info['base_monthly_salary'] / 2
+        self.working_days = self.get_workingDays(start_date, end_date)
+        self.daily_pay = round(self.half_salary/len(self.working_days), 2)
+        self.hourly_pay = round(self.daily_pay/8, 2)
+        if self.employee_info['is_regular'] == True:
+            self.daily_mealAllowance = 80.00
+        else:
+            self.daily_mealAllowance = 60.00
+    def compute_mealAllowance(self):
+        working_days =self.working_days
+        daily_mealAllowance = self.daily_mealAllowance
+        meal_allowance = self.num_present_days * daily_mealAllowance
+        print(f"{meal_allowance=}")
+        return meal_allowance
+        # self.tardiness_deduct = self.compute_tardinessDeduct()
+    def compute_tardinessDeduct(self):
+        tardiness_time = self.num_tardinesstime
+        tardiness_deduct = round((self.hourly_pay/60)*int(tardiness_time), 2)
+        return tardiness_deduct
+        
+    def compute_overtimePay(self):
+        overtime_hours = self.num_overtime
+        overtime_pay = overtime_hours * (float(self.hourly_pay) * (125/100) )
+        return round(overtime_pay, 2)
+        # if overtime > datetime.timedelta(0):
+    def get_workingDays(self, start_date, end_date):
+        date_range = pd.date_range(start_date, end_date)
+        days = ["Monday", "Tuesday", "Wednesday", 
+        "Thursday", "Friday", "Saturday", "Sunday"] 
+        working_days = []
+        for single_date in date_range:
+            if single_date.weekday() <5:
+                working_days.append([single_date.strftime("%Y-%m-%d"), days[single_date.weekday()]])
+        return working_days                 
+    # def compute_weekendPay(self,)
+    def compute_basicPay(self):
+        # half_salary = self.half_salary
+        working_days = self.working_days
+        if self.employee_info['is_perfect_attendance'] == True:
+            self.num_present_days = len(working_days)
+            self.num_tardinesstime = 0
+        daily_pay = self.daily_pay
+
+        basic_pay = round(daily_pay * self.num_present_days, 2)
+        
+        return basic_pay 
+    def compute_timeInOut(self):
+        attendances = self.attendances
+        dates = {}
+        for attendance in attendances:
+            # print(attendance)
+            if str(attendance['timestamp'].date()) not in dates:
+                dates[str(attendance['timestamp'].date())] = []
+            dates[str(attendance['timestamp'].date())].append(attendance)
+        
+        sorted_data = {}
+        for date, data in dates.items():
+            sorted_data[date] = sorted(data, key=lambda x: x['timestamp'])
+        time_InOut ={}
+        starting_time = time(hour=8,minute=1)
+        ending_time = time(hour=17, minute=1)
+        num_present_days = 0
+        num_overtime = timedelta(0)
+        num_tardinesstime = timedelta(0)
+        
+        
+        for date, data in sorted_data.items():
+            # print(f"{num_present_days=}")
+            time_InOut[date] = {}
+            time_InOut[date]['in'] = data[0]['timestamp'].time()
+            time_InOut[date]['out'] = None
+            starting_timeObj = datetime.datetime.combine(datetime.date.today(), starting_time)
+            in_timeObj = datetime.datetime.combine(datetime.date.today(), time_InOut[date]['in'])
+            ending_timeObj= datetime.datetime.combine(datetime.date.today(), ending_time)
+            
+            if (datetime.datetime.combine(datetime.date.today(), data[-1]['timestamp'].time()) - in_timeObj) > timedelta(minutes=30):
+                num_present_days = num_present_days + 1
+                time_InOut[date]['out'] = data[-1]['timestamp'].time()
+                out_timeObj = datetime.datetime.combine(datetime.date.today(), time_InOut[date]['out'])
+            
+                
+                if time_InOut[date]['in'] > starting_time:
+                    time_InOut[date]['is_late'] = True
+                    time_diff = in_timeObj - starting_timeObj 
+                    time_InOut[date]['tardiness'] = time_diff
+                    # print(f"{time_diff=}")
+                    num_tardinesstime += time_diff
+                else:
+                    time_InOut[date]['is_late'] = False
+
+                if time_InOut[date]['out'] == None:
+                    time_InOut[date]['is_undertime'] = False
+                    time_InOut[date]['is_overtime'] = False
+                else:
+                    if time_InOut[date]['out'] < ending_time  :
+                        time_InOut[date]['is_undertime'] = True
+                        time_diff = ending_timeObj - out_timeObj
+                        time_InOut[date]['undertime'] = time_diff
+                    else:
+                        time_InOut[date]['is_undertime'] = False
+                    
+                    if time_InOut[date]['out'] > ending_time:
+                        time_InOut[date]['is_overtime'] = True
+                        time_diff = out_timeObj - ending_timeObj
+                        time_InOut[date]['overtime'] = time_diff
+                        num_overtime += time_diff
+                    else:
+                        time_InOut[date]['is_overtime'] = False
+            else:
+                if time_InOut[date]['out'] == None:
+                    del time_InOut[date]
+        self.num_present_days = num_present_days
+        # self.num_overtime = num_overtime
+        self.num_overtime = self.seconds_to_hours(num_overtime)
+        self.num_tardinesstime = self.seconds_to_minutes(num_tardinesstime)
+        return time_InOut
+    def seconds_to_minutes(self,td):
+        minutes = (td.total_seconds())/60
+        return round(minutes,2)
+    def seconds_to_hours(self, td):
+        hours, remainder = divmod(td.total_seconds(), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        hours_decimal = minutes/60
+        print(f"{hours_decimal=}")
+
+        # formatted_time = f"{hours}:{minutes}:{seconds}"
+        return round(hours+hours_decimal,2)
+
+
+
+        
+
+
+def salary(request):
+    
+    if request.method == 'POST':
+        date_year = request.POST.get('date_year')
+        month_half = request.POST.get('month_half')
+        selected_year, selected_month = date_year.split('-')
+        
+        selected_year = int(selected_year)
+        selected_month = int(selected_month)
+        start_date = None
+        end_date = None
+        # print(f"{month_half=}")
+        if month_half == '1':
+            start_date = datetime.datetime(selected_year, selected_month, 1)
+            end_date = datetime.datetime(selected_year, selected_month, 15)
+        elif month_half == '2':
+            start_date = datetime.datetime(selected_year, selected_month, 16)
+            end_date =  datetime.datetime(selected_year, selected_month +1, 1) - datetime.timedelta(days=1)
+            # days_in_month = datetime.datetime.replace(day=calendar.monthrange(date.year, date.month)[1]).day
+            # last_day_of_previous_month = date.replace(day=days_in_month) - datetime.timedelta(days=1)
+        # print(start_date)
+        # print(end_date)
+        
+        records = list(Attendances.objects.filter(timestamp__range=[start_date, end_date], employee__is_registered = True).select_related('employee').order_by('-timestamp').values('timestamp', 'employee__dv_name', 'employee__dv_user_id', 'employee_id'))
+
+        employee_list = list(Employee.objects.filter(is_registered = True).values())
+        employee_attendance = {}
+        
+        for employee in employee_list:
+            if employee['id'] not in employee_attendance:
+                employee_attendance[employee['id']] = {}
+            employee_attendance[employee['id']]['employee_info'] = employee
+            if 'attendances' not in employee_attendance[employee['id']]:
+                employee_attendance[employee['id']]['attendances']=[]
+        for attendance in records:
+            if attendance['employee_id'] not in employee_attendance:
+                employee_attendance[attendance['employee_id']] = {}
+            
+            # if 'attendance' not in employee_attendance[attendance['employee_id']].keys():
+            if 'attendances' not in employee_attendance[attendance['employee_id']]:
+                employee_attendance[attendance['employee_id']]['attendance']=[]
+            employee_attendance[attendance['employee_id']]['attendances'].append(attendance)
+            
+        employee_payroll = {}
+        for employee_id, records in employee_attendance.items():
+            # print(attendance)
+            payroll = Payroll(records['employee_info'],records['attendances'],start_date, end_date)
+            employee_payroll[employee_id] ={}
+            employee_payroll[employee_id]['time_InOut']= payroll.timeInOut
+            employee_payroll[employee_id]['employee_info'] = payroll.employee_info
+            employee_payroll[employee_id]['basic_pay'] = payroll.compute_basicPay()
+            employee_payroll[employee_id]['meal_allowance'] = payroll.compute_mealAllowance()
+            employee_payroll[employee_id]['num_working_days'] = len(payroll.working_days)
+            employee_payroll[employee_id]['working_days'] = payroll.working_days
+            employee_payroll[employee_id]['num_present_days'] = payroll.num_present_days
+            employee_payroll[employee_id]['overtime_pay'] = payroll.compute_overtimePay()
+            employee_payroll[employee_id]['num_overtime'] = payroll.num_overtime
+            employee_payroll[employee_id]['tardiness_deduct'] = payroll.compute_tardinessDeduct()
+            employee_payroll[employee_id]['num_tardinesstime'] = payroll.num_tardinesstime
+            
+            
+            
+
+        return JsonResponse({'records': employee_payroll})
+
+    else:
+        
+        context = {
+            'form': FilterSalaryForm(),
+            'submit_form': PayrollForm()
+        }        
+        return render(request, 'hr/salary.html', context)
+
 def index(request):
-    # return HttpResponse('hello, World')
     return render(request, 'hr/index.html')
 def attendances(request):
     context = {}
     context['form'] = SearchAttendanceForm()
     return render(request, 'hr/attendance.html', context)
+def nonworking_days(request):
+    context = {}
+    context['form'] = NonWorkingDaysForm()
+    return render(request, 'hr/nonworking_days.html', context)
+def employees(request):
+    context = {}
+    context['form'] = EmployeeForm()
+    return render(request, 'hr/employees.html', context)
+def payroll(request):
+    if request.method == 'POST':
+        date_year = request.POST.get('date_year')
+        month_half = request.POST.get('month_half')
+        selected_year, selected_month = date_year.split('-')
+        
+        selected_year = int(selected_year)
+        selected_month = int(selected_month)
+        start_date = None
+        end_date = None
+        # print(f"{month_half=}")
+        if month_half == '1':
+            start_date = datetime.datetime(selected_year, selected_month, 1)
+            end_date = datetime.datetime(selected_year, selected_month, 15)
+        elif month_half == '2':
+            start_date = datetime.datetime(selected_year, selected_month, 16)
+            end_date =  datetime.datetime(selected_year, selected_month +1, 1) - datetime.timedelta(days=1)
+            # days_in_month = datetime.datetime.replace(day=calendar.monthrange(date.year, date.month)[1]).day
+            # last_day_of_previous_month = date.replace(day=days_in_month) - datetime.timedelta(days=1)
+        # print(start_date)
+        # print(end_date)
+        
+        records = list(Payrolls.objects.filter(start_date=start_date, end_date = end_date, employee__is_registered = True).prefetch_related('employee').values(
+            "employee__dv_user_id",
+            "employee__last_name",
+            "employee__first_name",
+            "employee__position",
+            "basic_pay", 
+            "meal_allowance",
+            "additional_pay",
+            "overtime_pay",
+            "tardiness_deduct",
+            "leave_without_pay",
+            "sss_contrib",
+            "philhealth_contrib",
+            "pagibig_contrib",
+            "adjustment",
+            "id"
+            ))
+        # records = Payrolls.objects.filter(start_date=start_date, end_date=end_date, employee__is_registered=True).select_related('employee').all()
+
+        # # Serialize queryset to JSON
+        # json_records = serialize('json', records)
+        # records_dict = json.loads(json_records)
+        # context = {
+        #     'records':records
+        # }        
+        return JsonResponse({"records":records}, safe = False)
+    context = {
+        'form': FilterSalaryForm(),
+    }
+    return render(request, 'hr/payroll.html', context)
+
+def fetch_unregistered_employees(request):
+    context = {}
+    records = list(Employee.objects.values().filter(is_registered = False))
+    context['records'] = records
+    return JsonResponse(context, safe=False)
+def register_employee(request, id):
+    if request.method == 'POST':
+        record = get_object_or_404(Employee, id = id)
+        record.is_registered = True
+        record.save()
+        return JsonResponse({'success':'Success'})
+def unregister_employee(request, id):
+    # if request.method == 'POST':
+    record = get_object_or_404(Employee, id = id)
+    record.is_registered = False
+    record.save()
+    return JsonResponse({'success':'Success'})
+
+def perfect_employee_attendance(request, id):
+    # if request.method == 'POST':
+    record = get_object_or_404(Employee, id = id)
+    record.is_perfect_attendance = True
+    record.save()
+    return JsonResponse({'success':'Success'})
+def imperfect_employee_attendance(request, id):
+    # if request.method == 'POST':
+    record = get_object_or_404(Employee, id = id)
+    record.is_perfect_attendance = False
+    record.save()
+    return JsonResponse({'success':'Success'})
+    
+
+def fetch_employees(request):
+    records = list(Employee.objects.values().filter(is_registered = True))
+    
+    return JsonResponse({'records': records}, safe=False)
+def fetch_employee_detail(request, id):
+    record = get_object_or_404(Employee, id = id)
+    return JsonResponse(model_to_dict(record))
+def update_employee(request, id):
+    record = get_object_or_404(Employee, id = id)
+    form  =  EmployeeForm(request.POST or None, instance= record)
+    if form.is_valid():
+        form.save()
+    print(form.is_valid())
+        
+    return JsonResponse(model_to_dict(form.instance))
+
+def delete_employee(request, id):
+    record = get_object_or_404(Employee, id = id)
+    record.delete()
+    return JsonResponse({'message': 'Deleted successfully.'})
 
 
 def download_attendances(request):
@@ -66,7 +399,7 @@ def download_attendances(request):
                 'date': date,
                 'employee_id': x,
                 'employee__dv_name': log[0]['employee__dv_name'],
-                'employe__dv_user_id': log[0]['employee__dv_user_id'],
+                'employee__dv_user_id': log[0]['employee__dv_user_id'],
                 'time_in': time_in,
                 'time_out': time_out,    
                 'is_late': is_late,
@@ -76,62 +409,65 @@ def download_attendances(request):
     download_dir = r'C:\Users\CA\Downloads'
     download_path = os.path.join(download_dir, 'Attendance.xlsx')
     df.to_excel(download_path, index=False)
-    # print(df)
-    
-    # excel_file = pd.ExcelWriter('employee_data.xlsx', engine='xlsxwriter')
-    # df.to_excel(excel_file, index=False)
-    # excel_file.save()
+
     return JsonResponse({'success': 'Success'})
 
-    # sheet = excel.pe.sheet(records)
-    # return excel.make_response(sheet, "csv")
+def fetch_payroll_details(request, id):
+    record = get_object_or_404(Payrolls, id=id)
+    
+    return JsonResponse(model_to_dict(record))
+    
+def submit_payroll(request, employee_id):
+    if request.method == "POST":
+        date_year = request.POST.get('date_year')
+        month_half = request.POST.get('month_half')
+        selected_year, selected_month = date_year.split('-')
+        
+        selected_year = int(selected_year)
+        selected_month = int(selected_month)
+        start_date = None
+        end_date = None
+        # print(f"{month_half=}")
+        if month_half == '1':
+            start_date = datetime.datetime(selected_year, selected_month, 1)
+            end_date = datetime.datetime(selected_year, selected_month, 15)
+        elif month_half == '2':
+            start_date = datetime.datetime(selected_year, selected_month, 16)
+            end_date =  datetime.datetime(selected_year, selected_month +1, 1) - datetime.timedelta(days=1)
+            
+        employee = get_object_or_404(Employee, id=employee_id)
+        mutable_data = request.POST.copy()
+        
+        # Assign start_date and end_date to the mutable copy
+        mutable_data['start_date'] = start_date
+        mutable_data['end_date'] = end_date
+        mutable_data['employee'] = employee
+        
+        
+        # Pass the mutable copy to the form
+        form = PayrollForm(mutable_data)
+        
+        # Manually clean and validate the form
+        form.full_clean()
+        if form.is_valid():
+            # Assuming start_date and end_date are part of the form, update them in cleaned_data
+
+            form.save()
+            return JsonResponse({'success': 'Success'})
+        else:
+            return JsonResponse({'error': form.errors})
+
+def add_attendances(request):
+    if request.method == "POST":
+
+        form = AttendanceForm(request.POST or None)
+    
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': "Success"})
+
 def fetch_attendances(request):
-    # records = list(Attendances.objects.select_related('employee').values('timestamp', 'status', 'punch', 'employee__dv_name', 'employee_id'))
-    records = list(Attendances.objects.select_related('employee').order_by('-timestamp').values('timestamp', 'employee__dv_name', 'employee__dv_user_id', 'employee_id'))
-    # for r in records:
-    #     print(r)
-    # time_records = defaultdict(list)
-
-    # # Sort the records by timestamp
-    # sorted_records = sorted(records, key=lambda x: x['timestamp'])
-
-    # # Iterate through records
-    # for i in range(0, len(sorted_records), 2):
-    #     time_in_record = sorted_records[i]
-    #     time_out_record = sorted_records[i+1] if i+1 < len(sorted_records) else None
-
-    #     # Add time in and time out to the time_records dictionary
-    #     time_records[time_in_record['employee_id']].append((time_in_record['timestamp'], time_out_record['timestamp']))
-
-    # # Print the time in and time out for each employee
-    # for employee_id, times in time_records.items():
-    #     print(f"\n\nEmployee ID: {employee_id}")
-    #     print(times)
-    #     for time_in, time_out in times:
-    #         print(f"  Time In: {time_in}, Time Out: {time_out}")   
-    # print(records)
-    # employees = {}
-    # for r in records:
-    #     if r['employee_id'] not in employees:
-    #         employees[r['employee_id']] = []
-    #     employees[r['employee_id']].append(r)
-    
-    # # employee_
-    
-    # for id, logs in employees.items():
-    #     # print(id, len(logs))
-    #     date = {}
-    #     for log in logs:
-    #         # print(log['timestamp'].date())
-    #         if str(log['timestamp'].date()) not in date:
-    #             date[str(log['timestamp'].date())] = []
-    #         date[str(log['timestamp'].date())].append(log)
-    #     employees[id] = date
-    # for id, logs in employees.items():
-    #     print(id)  
-    #     for x, log in logs.items():
-    #         print(x)
-    #         print(log)
+    records = list(Attendances.objects.select_related('employee').order_by('-timestamp').values('timestamp', 'employee__dv_name', 'employee__dv_user_id', 'employee_id').filter(employee__is_registered = True))
     
     dates = {}
     for r in records:
@@ -139,12 +475,8 @@ def fetch_attendances(request):
             
             dates[str(r['timestamp'].date())] = []
         dates[str(r['timestamp'].date())].append(r)
-            
-    
-    # employee_
     
     for id, logs in dates.items():
-        # print(id, len(logs))
         employees = {}
         for log in logs:
             # print(log['timestamp'].date())
@@ -155,31 +487,23 @@ def fetch_attendances(request):
         
     records = []
     for date, logs in dates.items():
-        # print(date)  
         for x, log in logs.items():
-            # time_in = None
             sorted_log = sorted(log, key=lambda x: x['timestamp'])
-
-            # print(x)
-            # print(log)
-            # time_out = None
             time_in = sorted_log[0]['timestamp'].time()
             time_out = sorted_log[-1]['timestamp'].time()
 
-            time_in_datetime = datetime.strptime(str(time_in), "%H:%M:%S")
-            time_out_datetime = datetime.strptime(str(time_out), "%H:%M:%S")
+            time_in_datetime = datetime.datetime.strptime(str(time_in), "%H:%M:%S")
+            time_out_datetime = datetime.datetime.strptime(str(time_out), "%H:%M:%S")
             time_diff = time_out_datetime - time_in_datetime
 
-            # Check if the time difference is less than 30 minutes
             if time_diff < timedelta(minutes=30):
                 time_out = None
             is_late = False
             is_overtime = False
-            if time_in is not None and time_in > datetime.strptime('08:05:00', '%H:%M:%S').time():
+            if time_in is not None and time_in > datetime.datetime.strptime('08:05:00', '%H:%M:%S').time():
                 is_late = True
-            if time_out is not None and time_out > datetime.strptime('17:05:00', '%H:%M:%S').time():
+            if time_out is not None and time_out > datetime.datetime.strptime('17:05:00', '%H:%M:%S').time():
                 is_overtime = True
-                # if log{'timestamp'}.time()  < datetime.strptime('08:00:00', '%H:%M:%S').time():
                 
             records.append({
                 'date':date,
@@ -191,20 +515,10 @@ def fetch_attendances(request):
                 'is_late': is_late,
                 'is_overtime': is_overtime,
                 })
-            # print(x)
-            # print(log)
-    
-        # for d, r in date.items():
-        #     print(d, r)
-            # print(r)
-        # print(r['timestamp'])
-    # return JsonResponse({'records': employees}, safe=True)
+
     return JsonResponse({'records': records}, safe=True)
 
-def nonworking_days(request):
-    context = {}
-    context['form'] = NonWorkingDaysForm()
-    return render(request, 'hr/nonworking_days.html', context)
+
 def add_nonworking_days(request):
     if request.method == "POST":
 
@@ -214,31 +528,19 @@ def add_nonworking_days(request):
             form.save()
     return JsonResponse({'success': "Success"})
 def fetch_nonworking_days(request):
-    # records = NonWorkingDays.objects.all()
     records = list(NonWorkingDays.objects.values())
     for record in records:
         record['start'] = record['date']
         record['title'] = record['reason']
         del record['date']
         del record['reason']
-        
-
-        print(record)
-        # record = record.rename({'date': 'start'})
     
     return JsonResponse(records, safe=False)
-    # return JsonResponse(model_to_dict(records))
-# def add_attendances(request):
-#     if request.method == "POST":
 
-#         form = AttendanceForm(request.POST or None)
+def compute_salary(request):
+    base_salary = 4000.00
     
-#         if form.is_valid():
-#             form.save()
-#     return JsonResponse({'success': "Success"})
-# def fetch_attendance_detail(request, id):
-#     record = get_object_or_404(Attendances, id = id)
-#     return JsonResponse(model_to_dict(record))
+
 # def update_attendance(request, id):
 #     record = get_object_or_404(Attendances, id = id)
 #     form  =  AttendanceForm(request.POST or None, instance= record)

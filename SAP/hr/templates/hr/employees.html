@@ -5,11 +5,26 @@
 <div class="card">
     <div class="card-body">
         <h1 class="card-title">Employees</h1>
+
         <div class="table-responsive">
+            <form id="form_register">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-3 col-sm-4">
+                        <select name="id" class="form-select" id="select-employees">
+                            <option value=""></option>
+                        </select>
+
+                    </div>
+                    <div class="col-md-3 col-sm-4 d-flex align-content-bottom">
+                        <button class="btn btn-secondary" type="submit">Register Employee</button>
+                    </div>
+            </form>
             <table class="table table-bordered table-hover table-striped" id="table_records">
                 <thead>
-                    <tr>
+                    <tr class="table-dark">
                         <td>ID</td>
+                        <td>Employee ID (Device)</td>
                         <td>Name (Device)</td>
                         <td>Position</td>
                         <td>Last Name</td>
@@ -22,7 +37,7 @@
                         <td>Civil Status</td>
                         <td>Gender</td>
                         <td>Mobile Number</td>
-                        <td>User ID (Device)</td>
+                        <td>Base Monthly Salary</td>
                         <td>Method</td>
                     </tr>
                 </thead>
@@ -55,61 +70,61 @@
                             <label for="" class="form-label">Name</label>
                             <input type="text" class="form-control" name="dv_name" disabled>
                         </div>
+
                         <div class="form-group">
-                            <label for="" class="form-label">Position</label>
-                            <input type="text" class="form-control" name="position">
+                            {{ form.position.label }}
+                            {{ form.position }}
+
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Last Name</label>
-                            <input type="text" class="form-control" name="last_name">
+                            {{ form.last_name.label }}
+                            {{ form.last_name }}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">First Name</label>
-                            <input type="text" class="form-control" name="first_name">
+                            {{ form.first_name.label }}
+                            {{ form.first_name }}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Middle Name</label>
-                            <input type="text" class="form-control" name="middle_name">
+                            {{ form.middle_name.label }}
+                            {{ form.middle_name }}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Suffix</label>
-                            <input type="text" class="form-control" name="name_suffix">
+                            {{ form.name_suffix.label }}
+                            {{ form.name_suffix }}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Date Hired</label>
-                            <input type="date" class="form-control" name="date_hired">
+                            {{ form.date_hired.label }}
+                            {{ form.date_hired }}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Birthday</label>
-                            <input type="date" class="form-control" name="birthday">
+                            {{ form.birthday.label }}
+                            {{ form.birthday }}
                         </div>
                         <div class="form-group">
-                            <label for="" class="form-label">Birthplace</label>
-                            <input type="text" class="form-control" name="birthplace">
+                            {{ form.birthplace.label }}
+                            {{ form.birthplace }}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Civil Status</label>
-                            <select name="civil_status" id="" class="form-select">
-                                <option selected>--SELECT--</option>
-                                <option value="SINGLE">SINGLE</option>
-                                <option value="MARRIED">MARRIED</option>
-                                <option value="SEPARATED">SEPARATED</option>
-                            </select>
+                            {{ form.civil_status.label }}
+                            {{ form.civil_status }}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Gender</label>
-                            <select name="gender" id="" class="form-select">
-                                <option selected>--SELECT--</option>
-                                <option value="MALE">MALE</option>
-                                <option value="FEMALE">FEMALE</option>
-                            </select>
+                            {{ form.gender.label }}
+                            {{ form.gender }}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Mobile Number</label>
-                            <input type="number" name="mobile_number" class="form-control" id="">
+                            {{ form.mobile_number.label }}
+                            {{ form.mobile_number }}
+                        </div>
+                        <div class="form-group col-sm-6">
+                            {{ form.base_monthly_salary.label }}
+                            {{ form.base_monthly_salary }}
+                        </div>
+                        <div class="form-group col-sm-6">
+                            {{ form.is_regular.label }}
+                            {{ form.is_regular }}
                         </div>
                     </div>
-
                 </div>
 
                 <div class="modal-footer">
@@ -125,12 +140,119 @@
 
 <script>
     $(document).ready(function() {
+
+        fetch_unregistered()
+        $("#id_is_regular").change(function(event) {
+            if ($(this).prop('checked')) {
+                $(this).val('true')
+            } else {
+                $(this).val('false')
+            }
+        })
+
+
+        function fetch_unregistered() {
+
+            $.ajax({
+                type: "GET",
+                url: "/hr/employees/unregistered/fetch/",
+
+                success: function(response) {
+                    console.log(response)
+                    records = response.records
+                    $("#select-employees").empty()
+                    $('#select-employees').append(
+                        `<option value="" selected>--Select Employees--</option>`);
+
+                    $.each(records, function(index, employee) {
+                        $('#select-employees').append(
+                            `<option value="${employee.id}">${employee.dv_user_id} -- ${employee.dv_name}</option>`
+                        )
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    console.log(xhr, status, error);
+                }
+            });
+        }
+        $("#table_records").on('click', '.btn_imperfect_att', function(event) {
+            var id = $(this).data('id')
+            $.ajax({
+                type: "GET",
+                url: `/hr/employees/imperfect/attendance/${id}/`,
+                success: function(response) {
+                    console.log(response)
+                    employees_table.ajax.reload()
+                    fetch_unregistered()
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    console.log(xhr, status, error);
+                }
+            });
+        })
+        $("#table_records").on('click', '.btn_perfect_att', function(event) {
+            var id = $(this).data('id')
+            console.log(id)
+            $.ajax({
+                type: "GET",
+                url: `/hr/employees/perfect/attendance/${id}/`,
+                success: function(response) {
+                    console.log(response)
+                    employees_table.ajax.reload()
+                    fetch_unregistered()
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    console.log(xhr, status, error);
+                }
+            });
+        })
+
+        $("#table_records").on('click', '.btn_unregister', function(event) {
+            var id = $(this).data('id')
+            $.ajax({
+                type: "GET",
+                url: `/hr/employees/unregister/${id}/`,
+                success: function(response) {
+                    console.log(response)
+                    employees_table.ajax.reload()
+                    fetch_unregistered()
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    console.log(xhr, status, error);
+                }
+            });
+        })
+        $("#form_register").submit(function(e) {
+            e.preventDefault();
+            var form = $(this)
+            var formData = new FormData(form[0])
+            var id = formData.get('id')
+
+            $.ajax({
+                type: "POST",
+                url: `/hr/employees/register/${id}/`,
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    console.log(response)
+                    employees_table.ajax.reload()
+                    fetch_unregistered()
+                }
+            });
+
+        });
+
         const employees_table = new DataTable("#table_records", {
             autoTableLayout: true,
-            // autoWidth: true,
+            //responsive: true,
             ajax: {
                 type: "GET",
-                url: "/biometrics/employees/fetch/",
+                url: "/hr/employees/fetch/",
                 dataSrc: 'records',
             },
             language: {
@@ -142,6 +264,9 @@
 
             columns: [{
                     data: 'id'
+                },
+                {
+                    data: 'dv_user_id'
                 },
                 {
                     data: 'dv_name'
@@ -180,18 +305,30 @@
                     data: 'mobile_number'
                 },
                 {
-                    data: 'dv_user_id'
+                    data: 'base_monthly_salary'
                 },
                 {
                     render: function(data, type, row) {
+                        var perf_class = ""
+                        var perf_text = ""
+                        if (row.is_perfect_attendance) {
+                            perf_class = 'btn_imperfect_att'
+                            perf_text = "Imperfect Attendance"
+
+                        } else {
+                            perf_class = 'btn_perfect_att'
+                            perf_text = "Perfect Attendance"
+                        }
                         return `
                         <div class="dropdown">
                             <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMethods" data-bs-toggle="dropdown" aria-expanded="false">
-                               Option
+                                Option
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="dropdownMethods">
-                                <li><button class="dropdown-item btn-warning btn_edit" data-id="${row.id}">Edit</button></li>
-                                <li><button class="dropdown-item btn-danger btn_delete" data-id="${row.id}">Delete</button></li>
+                                <li><button type="button" class="dropdown-item btn-secondary ${perf_class}" data-id="${row.id}">${perf_text}</li>
+                                <li><button type="button" class="dropdown-item btn-secondary btn_unregister" data-id="${row.id}">Unregister</button></li>
+                                <li><button type="button" class="dropdown-item btn-warning btn_edit" data-id="${row.id}">Edit</button></li>
+                                <li><button type="button" class="dropdown-item btn-danger btn_delete" data-id="${row.id}">Delete</button></li>
                             </ul>
                         </div>
                         `
@@ -207,7 +344,7 @@
         });
         // $.ajax({
         //     type: "get",
-        //     url: "/biometrics/employees/fetch/",
+        //     url: "/hr/employees/fetch/",
 
         //     success: function(response) {
         //         console.log(response)
@@ -221,11 +358,16 @@
             var modal_edit = $("#modal_edit")
             $.ajax({
                 type: "GET",
-                url: "/biometrics/employees/fetch/" + id,
+                url: "/hr/employees/fetch/" + id,
                 success: function(response) {
                     console.log(response)
                     const keys = Object.keys(response);
                     keys.sort();
+                    if (response.is_regular == true) {
+                        $(`#id_is_regular`).prop('checked', true)
+                    } else {
+                        $(`#id_is_regular`).prop('checked', false)
+                    }
 
                     for (const key of keys) {
                         modal_edit.find(`input[name='${key}']`).val(response[key])
@@ -250,7 +392,7 @@
             var id = formData.get("id")
             $.ajax({
                 type: "POST",
-                url: `/biometrics/employees/update/${id}/`,
+                url: `/hr/employees/update/${id}/`,
                 data: formData,
                 processData: false,
                 contentType: false,

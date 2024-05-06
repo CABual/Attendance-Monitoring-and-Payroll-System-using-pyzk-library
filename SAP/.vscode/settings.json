@@ -1,5 +1,20 @@
 {
     "settings": {
     "python.terminal.activateEnvInCurrentTerminal": true,
-    }
+    },
+    "cSpell.ignoreWords": [
+        "dailypay",
+        "dateutil",
+        "overtimepay",
+        "pagibig",
+        "payoutby",
+        "philhealth",
+        "tardinesstime",
+        "undertime",
+        "workingday"
+    ],
+    "cSpell.words": [
+        "hourlypay",
+        "workinghours"
+    ]
 }

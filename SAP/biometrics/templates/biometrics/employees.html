@@ -1,10 +1,10 @@
 {% extends 'layouts/layout.html' %}
 {% block content %}
-{% comment %} <button class="btn btn-primary" id="btn_download_attendances">Download Attendances</button>
-<button class="btn btn-primary" id="btn_download_employees">Download Employees</button> {% endcomment %}
+
 <div class="card">
     <div class="card-body">
         <h1 class="card-title">Employees</h1>
+        <button class="btn btn-primary" id="btn_download_employees">Download Employees</button>
         <div class="table-responsive">
             <table class="table table-bordered table-hover table-striped" id="table_records">
                 <thead>
@@ -55,61 +55,57 @@
                             <label for="" class="form-label">Name</label>
                             <input type="text" class="form-control" name="dv_name" disabled>
                         </div>
+
                         <div class="form-group">
-                            <label for="" class="form-label">Position</label>
-                            <input type="text" class="form-control" name="position">
+                            {{form.position.label}}
+                            {{form.position}}
+
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Last Name</label>
-                            <input type="text" class="form-control" name="last_name">
+                            {{form.last_name.label}}
+                            {{form.last_name}}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">First Name</label>
-                            <input type="text" class="form-control" name="first_name">
+                            {{form.first_name.label}}
+                            {{form.first_name}}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Middle Name</label>
-                            <input type="text" class="form-control" name="middle_name">
+                            {{form.middle_name.label}}
+                            {{form.middle_name}}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Suffix</label>
-                            <input type="text" class="form-control" name="name_suffix">
+                            {{form.name_suffix.label}}
+                            {{form.name_suffix}}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Date Hired</label>
-                            <input type="date" class="form-control" name="date_hired">
+                            {{form.date_hired.label}}
+                            {{form.date_hired}}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Birthday</label>
-                            <input type="date" class="form-control" name="birthday">
+                            {{form.birthday.label}}
+                            {{form.birthday}}
                         </div>
                         <div class="form-group">
-                            <label for="" class="form-label">Birthplace</label>
-                            <input type="text" class="form-control" name="birthplace">
+                            {{form.birthplace.label}}
+                            {{form.birthplace}}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Civil Status</label>
-                            <select name="civil_status" id="" class="form-select">
-                                <option selected>--SELECT--</option>
-                                <option value="SINGLE">SINGLE</option>
-                                <option value="MARRIED">MARRIED</option>
-                                <option value="SEPARATED">SEPARATED</option>
-                            </select>
+                            {{form.civil_status.label}}
+                            {{form.civil_status}}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Gender</label>
-                            <select name="gender" id="" class="form-select">
-                                <option selected>--SELECT--</option>
-                                <option value="MALE">MALE</option>
-                                <option value="FEMALE">FEMALE</option>
-                            </select>
+                            {{form.gender.label}}
+                            {{form.gender}}
                         </div>
                         <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Mobile Number</label>
-                            <input type="number" name="mobile_number" class="form-control" id="">
+                            {{form.mobile_number.label}}
+                            {{form.mobile_number}}
+                        </div>
+                        <div class="form-group col-sm-6">
+                            {{ form.base_monthly_salary.label }}
+                            {{ form.base_monthly_salary }}
                         </div>
                     </div>
-
                 </div>
 
                 <div class="modal-footer">
@@ -124,7 +120,7 @@
 <script src="{% static 'employees.js' %}"></script> -->
 
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         const employees_table = new DataTable("#table_records", {
             autoTableLayout: true,
             // autoWidth: true,
@@ -134,57 +130,57 @@
                 dataSrc: 'records',
             },
             language: {
-                error: function(errors, settings, techNote, table) {
+                error: function (errors, settings, techNote, table) {
                     // Display the error message
                     console.log(errors);
                 }
             },
 
             columns: [{
-                    data: 'id'
-                },
-                {
-                    data: 'dv_name'
-                },
-                {
-                    data: 'position'
-                },
-                {
-                    data: 'last_name'
-                },
-                {
-                    data: 'first_name'
-                },
-                {
-                    data: 'middle_name'
-                },
-                {
-                    data: 'name_suffix'
-                },
-                {
-                    data: 'date_hired'
-                },
-                {
-                    data: 'birthday'
-                },
-                {
-                    data: 'birthplace'
-                },
-                {
-                    data: 'civil_status'
-                },
-                {
-                    data: 'gender'
-                },
-                {
-                    data: 'mobile_number'
-                },
-                {
-                    data: 'dv_user_id'
-                },
-                {
-                    render: function(data, type, row) {
-                        return `
+                data: 'id'
+            },
+            {
+                data: 'dv_name'
+            },
+            {
+                data: 'position'
+            },
+            {
+                data: 'last_name'
+            },
+            {
+                data: 'first_name'
+            },
+            {
+                data: 'middle_name'
+            },
+            {
+                data: 'name_suffix'
+            },
+            {
+                data: 'date_hired'
+            },
+            {
+                data: 'birthday'
+            },
+            {
+                data: 'birthplace'
+            },
+            {
+                data: 'civil_status'
+            },
+            {
+                data: 'gender'
+            },
+            {
+                data: 'mobile_number'
+            },
+            {
+                data: 'dv_user_id'
+            },
+            {
+                render: function (data, type, row) {
+                    return `
                         <div class="dropdown">
                             <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMethods" data-bs-toggle="dropdown" aria-expanded="false">
                                Option
@@ -195,12 +191,12 @@
                             </ul>
                         </div>
                         `
-                    }
                 }
+            }
             ],
 
 
-            createdRow: function(row, data, index) {
+            createdRow: function (row, data, index) {
                 $(row).attr('data-id', data.id);
 
             },
@@ -214,7 +210,7 @@
         //     }
         // });
         // $(".modal_edit")
-        $("#table_records").on('click', '.btn_edit', function(event) {
+        $("#table_records").on('click', '.btn_edit', function (event) {
             event.preventDefault();
             var id = $(this).data('id')
             console.log(id)
@@ -222,7 +218,7 @@
             $.ajax({
                 type: "GET",
                 url: "/biometrics/employees/fetch/" + id,
-                success: function(response) {
+                success: function (response) {
                     console.log(response)
                     const keys = Object.keys(response);
                     keys.sort();
@@ -236,14 +232,14 @@
                     // console.log(response[0].fields)
                     // console.log(response['fields'])
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error(xhr.responseText);
                     console.log(xhr, status, error);
                 }
             })
             modal_edit.modal('show')
         })
-        $("#form_edit").submit(function(event) {
+        $("#form_edit").submit(function (event) {
             event.preventDefault()
             var form = $(this)
             var formData = new FormData(form[0])
@@ -254,13 +250,13 @@
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function(response) {
+                success: function (response) {
                     console.log(response)
                     employees_table.ajax.reload()
                     form.trigger("reset")
                     $('.modal').modal('hide')
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error(xhr.responseText);
                     console.log(xhr, status, error);
                 }
