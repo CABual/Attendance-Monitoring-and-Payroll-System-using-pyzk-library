@@ -5,7 +5,12 @@
 {% comment %}
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script src="https://rawgit.com/unconditional/jquery-table2excel/master/src/jquery.table2excel.js"></script> {% endcomment %}
-
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+    integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+></script>
 <div class="card">
     <div class="card-body">
         {% comment %} <button class="btn btn-success" id="export_payroll_data">Export</button> {% endcomment %}
@@ -61,12 +66,12 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title">Maria Krissa Charez Bongon</h4>
-                <p>Executive Assistant</p>
+                <h4 class="modal-title">View Payroll Details</h4>
+                <p><span class="td-employee_position"></span></b></p>
             </div>
             <div class="modal-body">
                 {% comment %} <h5></h5> {% endcomment %}
-                <div class="table-responsive">
+                <div class="table-responsive" id="payroll_view">
                     <table class="table table-bordered table-hover" id="table_payroll_view">
                         <thead>
                             <tr class="table-primary">
@@ -82,8 +87,8 @@
                                 <td colspan="5">SEMI-MONTHLY PAYROLL</td>
                             </tr>
                             <tr class="">
-                                <td><b>ID No. 23-0033</b></td>
-                                <td><b>Asilo, Airies M.</b></td>
+                                <td><b><span class="td-employee_id"></span></b></td>
+                                <td><b><span class="td-employee_name"></span></b></td>
                                 <td></td>
                                 <td></td>                                
                                 <td></td>
@@ -157,12 +162,15 @@
                                 <td><span class="td-daily_ma"></span></td>
                                 <td><span class="td-meal_allowance"></span></td>
                             </tr>
+
+
+
                             <tr>
                                 <td></td>
                                 <td>Adjustment(Sat and Sun. Work)</td>
-                                <td><span class="td-num_weekend_days"></span></td>
+                                <td><span class="td-weekend_work_hr"></span></td>
                                 <td><span class="td-weekend_rate"></span></td>
-                                <td><span class="td-adjustment"></span></td>
+                                <td><span class="td-weekend_pay"></span></td>
                             </tr>
                             <tr>
                                 <td></td>
@@ -191,6 +199,14 @@
                                 <td></td>
                                 <td><span class="td-tardiness_deduct"></span></td>
                             </tr>
+                            <tr>
+                                <td></td>
+                                <td>Undertime Deduction</td>
+                                <td><span class="td-num_undertime_hr"></span></td>
+                                <td></td>
+                                <td><span class="td-undertime_deduct"></span></td>
+                            </tr>
+
                             <tr>
                                 <td></td>
                                 <td>Leave w/o pay</td>
@@ -224,13 +240,13 @@
                                 <td>Adjustment</td>
                                 <td></td>
                                 <td></td>
-                                <td><span class="td-adjustment_deduc"></span></td>
+                                <td><span class="td-adjustment"></span></td>
                             </tr>
                             <tr>
                                 <td colspan="2"><b>Total Deductions</b></td>
                                 <td></td>
                                 <td></td>
-                                <td><span class="td-total_deduc"></span></td>
+                                <td><span class="td-total_deductions"></span></td>
                             </tr>
                             <tr></tr>
                             <tr class="table-secondary">
@@ -242,14 +258,31 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-success" type="button" id="export_payroll_data">Export</button>
+                {% comment %} <input type="button" id="btn_export_pdf" value="Export" /> {% endcomment %}
+                <button class="btn btn-success" type="button" id="btn_export_pdf">PDF</button>
+                <button class="btn btn-success" type="button" id="export_payroll_data">Excel</button>
             </div>
         </div>
     </div>
 </div>
 
+		<!-- html2pdf CDN link -->
+
+		<script>
+			const button = document.getElementById('btn_export_pdf');
+
+			function generatePDF() {
+				// Choose the element that your content will be rendered to.
+				const element = document.getElementById('payroll_view');
+				// Choose the element and save the PDF for your user.
+				html2pdf().from(element).save();
+			}
+
+			button.addEventListener('click', generatePDF);
+		</script>
 <script>
     $(document).ready(function(event) {
+
         $("#export_payroll_data").click(function(e) {
             e.preventDefault();
             console.log("fs")
@@ -263,6 +296,23 @@
             });
         });
         $("#table_records").on('click', '.btn_view_details', function(event) {
+            var employee_name = $(this).closest('tr').find('.employee_name').text()
+            var employee_id = $(this).closest('tr').find('.employee_id').text()
+            var employee_position = $(this).closest('tr').find('.employee_position').text()
+            var gross_pay = $(this).closest('tr').find('.gross_pay').text()
+            var total_deductions = $(this).closest('tr').find('.total_deductions').text()
+            var net_pay = $(this).closest('tr').find('.net_pay').text()
+
+
+            $(".td-gross_pay").text(gross_pay)
+            $(".td-total_deductions").text(total_deductions)
+            $(".td-net_pay").text(net_pay)
+            $(".td-employee_id").text(employee_id)
+            $(".td-employee_position").text(employee_position)
+            $(".td-employee_name").text(employee_name)
+
+
+            console.log("gross" +gross_pay)
             var id = $(this).data('id')
             console.log(id)
             $.ajax({
@@ -279,48 +329,6 @@
                 }
             });
         })
-        $("#form_search").submit(function(e) {
-            e.preventDefault();
-            var form = $(this);
-            var formData = new FormData(form[0]);
-            $.ajax({
-                type: "POST",
-                url: "/hr/payroll/",
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(response) {
-                    var records = response.records;
-                    console.log(records)
-                    employees_table.clear();
-                    $.each(records, function(id, record) {
-                        console.log(record)
-                        var gross_pay = (parseFloat(record.basic_pay) + parseFloat(
-                            record.overtime_pay) + parseFloat(record
-                            .meal_allowance) + parseFloat(record
-                            .additional_pay)).toFixed(2)
-                        var total_deductions = (parseFloat(record
-                            .tardiness_deduct) + parseFloat(record
-                            .leave_without_pay) + parseFloat(record
-                            .sss_contrib) + parseFloat(record
-                            .philhealth_contrib) + parseFloat(record
-                            .pagibig_contrib) + parseFloat(record
-                            .adjustment)).toFixed(2)
-                        var net_pay = gross_pay - total_deductions
-                        employees_table.row.add([
-                            record.employee__position,
-                            record.employee__dv_user_id,
-                            `${record.employee__last_name}, ${record.employee__first_name}`,
-                            `${gross_pay}`,
-                            `${total_deductions}`,
-                            `${net_pay}`,
-                            `<button class="btn btn-success btn_view_details" type="button" data-id="${record.id}">View Details</button>`
-                        ]).draw();
-                    });
-                }
-            });
-        });
-        $("#form_search").trigger('submit');
 
         const employees_table = new DataTable("#table_records", {
             autoTableLayout: true,
@@ -336,26 +344,76 @@
                     targets: [0]
                 },
                 {
-                    className: 'employee_name',
+                    className: 'employee_id',
                     targets: [1]
                 },
                 {
-                    className: 'basic_pay',
+                    className: 'employee_name',
                     targets: [2]
                 },
                 {
-                    className: 'meal_allowance',
+                    className: 'gross_pay',
                     targets: [3]
                 },
                 {
-                    className: 'num_present_days',
+                    className: 'total_deductions',
                     targets: [4]
+                },
+                {
+                    className: 'net_pay',
+                    targets: [5]
                 },
             ],
             createdRow: function(row, data, index) {
                 $(row).attr('data-id', data.id);
             }
         });
+        $("#form_search").submit(function(e) {
+            e.preventDefault();
+            var form = $(this);
+            var formData = new FormData(form[0]);
+            employees_table.clear();
+            $.ajax({
+                type: "POST",
+                url: "/hr/payroll/",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    var records = response.records;
+                    console.log(records)
+                    employees_table.draw()
+                    $.each(records, function(id, record) {
+                        console.log(record)
+                        var gross_pay = (parseFloat(record.basic_pay) + parseFloat(
+                                record.overtime_pay) + parseFloat(record
+                                .meal_allowance) + parseFloat(record
+                                .additional_pay)+
+                            parseFloat(record.weekend_pay)).toFixed(2) 
+                        var total_deductions = (parseFloat(record
+                                .tardiness_deduct) + parseFloat(record.undertime_deduct) +
+                            parseFloat(record
+                                .leave_without_pay) + parseFloat(record
+                                .sss_contrib) + parseFloat(record
+                                .philhealth_contrib) + parseFloat(record
+                                .pagibig_contrib) + parseFloat(record
+                                .adjustment)).toFixed(2)
+                        var net_pay = gross_pay - total_deductions
+                        employees_table.row.add([
+                                    record.employee__position,
+                                    record.employee__dv_user_id,
+                                    `${record.employee__last_name}, ${record.employee__first_name}`,
+                                    `${gross_pay}`,
+                                    `${total_deductions}`,
+                                    `${net_pay.toFixed(2)}`,
+                            `<button class="btn btn-success btn_view_details" type="button" data-id="${record.id}">View Details</button>`
+                        ]).draw();
+                        
+                    });
+                }
+            });
+        });
+        $("#form_search").trigger('submit');
     });
 </script>
 

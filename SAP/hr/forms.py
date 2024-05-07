@@ -153,7 +153,6 @@ class NonWorkingDaysForm(forms.ModelForm):
             })
         }
 class PayrollForm(forms.ModelForm):
-
     class Meta:
         model = Payrolls
         # fields = ['basic_pay', '']
@@ -163,20 +162,36 @@ class PayrollForm(forms.ModelForm):
         ]
 
         widgets = {
-            'basic_pay': TextInput(attrs={
+            'weekend_work_hr': TextInput(attrs={
                 'class': 'form-control',
+                'readonly': 'True'
+            }),
+            'weekend_pay': TextInput(attrs={
+                'class': 'form-control earnings',
+                'readonly': 'True'
+            }),
+            'num_undertime_hr': TextInput(attrs={
+                'class': 'form-control',
+                'readonly': 'True'
+            }),
+            'undertime_deduct': TextInput(attrs={
+                'class': 'form-control deductions',
+                'readonly': 'True'
+            }),
+            'basic_pay': TextInput(attrs={
+                'class': 'form-control earnings',
                 'readonly': 'True'
             }),
             'meal_allowance': TextInput(attrs={
-                'class': 'form-control',
+                'class': 'form-control earnings',
                 'readonly': 'True'
             }),
             'overtime_pay': TextInput(attrs={
-                'class': 'form-control',
+                'class': 'form-control earnings',
                 'readonly': 'True'
             }),
-            'additional_pay': TextInput(attrs={
-                'class': 'form-control',
+            'additional_pay': NumberInput(attrs={
+                'class': 'form-control earnings',
                 # 'required': 'false'
             }),
             'num_present_days': TextInput(attrs={
@@ -188,27 +203,27 @@ class PayrollForm(forms.ModelForm):
                 'readonly': 'True'
             }),            
             'tardiness_deduct': TextInput(attrs={
-                'class': 'form-control',
+                'class': 'form-control deductions',
                 'readonly': 'True'
             }),            
-            'leave_without_pay': TextInput(attrs={
-                'class': 'form-control',
+            'leave_without_pay': NumberInput(attrs={
+                'class': 'form-control deductions',
                 # 'required': 'false'
             }),
-            'sss_contrib': TextInput(attrs={
-                'class': 'form-control',
+            'sss_contrib': NumberInput(attrs={
+                'class': 'form-control deductions',
                 # 'required': 'false'
             }),
-            'philhealth_contrib': TextInput(attrs={
-                'class': 'form-control',
+            'philhealth_contrib': NumberInput(attrs={
+                'class': 'form-control deductions',
                 # 'required': 'false'
             }),
-            'pagibig_contrib': TextInput(attrs={
-                'class': 'form-control',
+            'pagibig_contrib': NumberInput(attrs={
+                'class': 'form-control deductions',
                 # 'required': 'false'
             }),
-            'adjustment': TextInput(attrs={
-                'class': 'form-control',
+            'adjustment': NumberInput(attrs={
+                'class': 'form-control deductions',
                 # 'required': 'false'
             }),
             'num_tardinesstime_min': TextInput(attrs={

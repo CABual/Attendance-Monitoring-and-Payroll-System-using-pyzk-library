@@ -40,17 +40,20 @@ class Payroll:
         else:
             self.daily_mealAllowance = 60.00
     def compute_mealAllowance(self):
-        working_days =self.working_days
         daily_mealAllowance = self.daily_mealAllowance
         meal_allowance = self.num_present_days * daily_mealAllowance
-        print(f"{meal_allowance=}")
         return meal_allowance
-        # self.tardiness_deduct = self.compute_tardinessDeduct()
+    def compute_undertimeDeduct(self):
+        num_undertime= self.num_undertime
+        hourly_pay = self.hourly_pay
+        undertime_deduct = num_undertime * float(hourly_pay)
+        return round(undertime_deduct,2)
+        
     def compute_tardinessDeduct(self):
         tardiness_time = self.num_tardinesstime
         tardiness_deduct = round((self.hourly_pay/60)*int(tardiness_time), 2)
         return tardiness_deduct
-        
+    
     def compute_overtimePay(self):
         overtime_hours = self.num_overtime
         overtime_pay = overtime_hours * (float(self.hourly_pay) * (125/100) )
@@ -65,23 +68,29 @@ class Payroll:
             if single_date.weekday() <5:
                 working_days.append([single_date.strftime("%Y-%m-%d"), days[single_date.weekday()]])
         return working_days                 
-    # def compute_weekendPay(self,)
+    def compute_weekendPay(self):
+        hourly_pay = self.hourly_pay
+        weekend_work_hr = self.weekend_work_hr
+        pay_multiplier = 150
+        weekend_pay = weekend_work_hr * (float(hourly_pay) *(pay_multiplier/100))
+        return round(weekend_pay,2)
     def compute_basicPay(self):
-        # half_salary = self.half_salary
         working_days = self.working_days
-        if self.employee_info['is_perfect_attendance'] == True:
+        if self.employee_info['is_perfect_attendance'] == True or self.num_present_days == len(working_days):
             self.num_present_days = len(working_days)
             self.num_tardinesstime = 0
-        daily_pay = self.daily_pay
+            basic_pay = self.half_salary
+        else:
+            daily_pay = self.daily_pay
 
-        basic_pay = round(daily_pay * self.num_present_days, 2)
+            basic_pay = round(daily_pay * self.num_present_days, 2)
         
         return basic_pay 
+
     def compute_timeInOut(self):
         attendances = self.attendances
         dates = {}
         for attendance in attendances:
-            # print(attendance)
             if str(attendance['timestamp'].date()) not in dates:
                 dates[str(attendance['timestamp'].date())] = []
             dates[str(attendance['timestamp'].date())].append(attendance)
@@ -90,58 +99,86 @@ class Payroll:
         for date, data in dates.items():
             sorted_data[date] = sorted(data, key=lambda x: x['timestamp'])
         time_InOut ={}
+        num_weekend_work_hr = datetime.timedelta(0)
+        
         starting_time = time(hour=8,minute=1)
         ending_time = time(hour=17, minute=1)
         num_present_days = 0
         num_overtime = timedelta(0)
         num_tardinesstime = timedelta(0)
-        
+        num_undertime = timedelta(0)
         
         for date, data in sorted_data.items():
-            # print(f"{num_present_days=}")
-            time_InOut[date] = {}
-            time_InOut[date]['in'] = data[0]['timestamp'].time()
-            time_InOut[date]['out'] = None
-            starting_timeObj = datetime.datetime.combine(datetime.date.today(), starting_time)
-            in_timeObj = datetime.datetime.combine(datetime.date.today(), time_InOut[date]['in'])
-            ending_timeObj= datetime.datetime.combine(datetime.date.today(), ending_time)
-            
-            if (datetime.datetime.combine(datetime.date.today(), data[-1]['timestamp'].time()) - in_timeObj) > timedelta(minutes=30):
-                num_present_days = num_present_days + 1
-                time_InOut[date]['out'] = data[-1]['timestamp'].time()
-                out_timeObj = datetime.datetime.combine(datetime.date.today(), time_InOut[date]['out'])
-            
-                
-                if time_InOut[date]['in'] > starting_time:
-                    time_InOut[date]['is_late'] = True
-                    time_diff = in_timeObj - starting_timeObj 
-                    time_InOut[date]['tardiness'] = time_diff
-                    # print(f"{time_diff=}")
-                    num_tardinesstime += time_diff
-                else:
-                    time_InOut[date]['is_late'] = False
+            week_day = datetime.datetime.strptime(date, "%Y-%m-%d").weekday()
 
-                if time_InOut[date]['out'] == None:
-                    time_InOut[date]['is_undertime'] = False
-                    time_InOut[date]['is_overtime'] = False
-                else:
-                    if time_InOut[date]['out'] < ending_time  :
-                        time_InOut[date]['is_undertime'] = True
-                        time_diff = ending_timeObj - out_timeObj
-                        time_InOut[date]['undertime'] = time_diff
-                    else:
-                        time_InOut[date]['is_undertime'] = False
+            if week_day <5:
+                
+                time_InOut[date] = {}
+                time_InOut[date]['in'] = data[0]['timestamp'].time()
+                time_InOut[date]['out'] = None
+                starting_timeObj = datetime.datetime.combine(datetime.date.today(), starting_time)
+                in_timeObj = datetime.datetime.combine(datetime.date.today(), time_InOut[date]['in'])
+                ending_timeObj= datetime.datetime.combine(datetime.date.today(), ending_time)
+                
+                if (datetime.datetime.combine(datetime.date.today(), data[-1]['timestamp'].time()) - in_timeObj) > timedelta(minutes=30):
+                    num_present_days = num_present_days + 1
+                    time_InOut[date]['out'] = data[-1]['timestamp'].time()
+                    out_timeObj = datetime.datetime.combine(datetime.date.today(), time_InOut[date]['out'])
+                
                     
-                    if time_InOut[date]['out'] > ending_time:
-                        time_InOut[date]['is_overtime'] = True
-                        time_diff = out_timeObj - ending_timeObj
-                        time_InOut[date]['overtime'] = time_diff
-                        num_overtime += time_diff
+                    if time_InOut[date]['in'] > starting_time:
+                        time_InOut[date]['is_late'] = True
+                        time_diff = in_timeObj - starting_timeObj 
+                        time_InOut[date]['tardiness'] = time_diff
+                        # print(f"{time_diff=}")
+                        num_tardinesstime += time_diff
                     else:
+                        time_InOut[date]['is_late'] = False
+
+                    if time_InOut[date]['out'] == None:
+                        time_InOut[date]['is_undertime'] = False
                         time_InOut[date]['is_overtime'] = False
-            else:
-                if time_InOut[date]['out'] == None:
-                    del time_InOut[date]
+                    else:
+                        if time_InOut[date]['out'] < ending_time  :
+                            time_InOut[date]['is_undertime'] = True
+                            time_diff = ending_timeObj - out_timeObj
+                            time_InOut[date]['undertime'] = time_diff
+                            time_diff = ending_timeObj - out_timeObj
+                            print(f"saa{ending_timeObj, out_timeObj}")
+                            num_undertime += time_diff
+                            print(f"{num_undertime= }")
+                        else:
+                            time_InOut[date]['is_undertime'] = False
+                        
+                        if time_InOut[date]['out'] > ending_time:
+                            time_InOut[date]['is_overtime'] = True
+                            time_diff = out_timeObj - ending_timeObj
+                            time_InOut[date]['overtime'] = time_diff
+                            num_overtime += time_diff
+                        else:
+                            time_InOut[date]['is_overtime'] = False
+                            time_diff = ending_timeObj - out_timeObj
+                            print(f"saa{ending_timeObj, out_timeObj}")
+                            num_undertime += time_diff
+                            print(f"{num_undertime= }")
+                            
+                else:
+                    if time_InOut[date]['out'] == None:
+                        del time_InOut[date]
+            elif week_day == 5 or week_day == 6:
+                print(datetime.date.today(), data[-1]['timestamp'].time(), datetime.date.today(), data[0]['timestamp'].time())
+                time_diff = datetime.datetime.combine(datetime.date.today(), data[-1]['timestamp'].time()) - datetime.datetime.combine(datetime.date.today(), data[0]['timestamp'].time())
+                
+                num_weekend_work_hr = num_weekend_work_hr + time_diff
+                days = ["Monday", "Tuesday", "Wednesday", 
+                "Thursday", "Friday", "Saturday", "Sunday"] 
+                print(date, days[week_day])
+                print(date, date)
+        # print(f"{weekend_work_hr=}")
+        self.weekend_work_hr = self.seconds_to_hours(num_weekend_work_hr)
+        self.num_undertime = self.seconds_to_hours(num_undertime)
+        
+        # print(num_present_days)
         self.num_present_days = num_present_days
         # self.num_overtime = num_overtime
         self.num_overtime = self.seconds_to_hours(num_overtime)
@@ -152,9 +189,9 @@ class Payroll:
         return round(minutes,2)
     def seconds_to_hours(self, td):
         hours, remainder = divmod(td.total_seconds(), 3600)
-        minutes, seconds = divmod(remainder, 60)
+        minutes = remainder/60
         hours_decimal = minutes/60
-        print(f"{hours_decimal=}")
+        # print(f"{hours_decimal=}")
 
         # formatted_time = f"{hours}:{minutes}:{seconds}"
         return round(hours+hours_decimal,2)
@@ -181,7 +218,12 @@ def salary(request):
             end_date = datetime.datetime(selected_year, selected_month, 15)
         elif month_half == '2':
             start_date = datetime.datetime(selected_year, selected_month, 16)
-            end_date =  datetime.datetime(selected_year, selected_month +1, 1) - datetime.timedelta(days=1)
+            if selected_month == 12:
+                selected_year = selected_year + 1
+                selected_month = 1
+            else:
+                selected_month = selected_month + 1
+            end_date =  datetime.datetime(selected_year, selected_month, 1) - datetime.timedelta(days=1)
             # days_in_month = datetime.datetime.replace(day=calendar.monthrange(date.year, date.month)[1]).day
             # last_day_of_previous_month = date.replace(day=days_in_month) - datetime.timedelta(days=1)
         # print(start_date)
@@ -223,8 +265,13 @@ def salary(request):
             employee_payroll[employee_id]['num_overtime'] = payroll.num_overtime
             employee_payroll[employee_id]['tardiness_deduct'] = payroll.compute_tardinessDeduct()
             employee_payroll[employee_id]['num_tardinesstime'] = payroll.num_tardinesstime
+            employee_payroll[employee_id]['weekend_work_hr'] = payroll.weekend_work_hr
+            employee_payroll[employee_id]['weekend_pay'] = payroll.compute_weekendPay()
+            employee_payroll[employee_id]['num_undertime_hr'] = payroll.num_undertime
+            employee_payroll[employee_id]['undertime_deduct'] = payroll.compute_undertimeDeduct()
             
-            
+            # print(f"{payroll.compute_undertimeDeduct()=}")
+            # print(payroll.num_undertime, payroll.hourly_pay ,payroll.compute_undertimeDeduct())
             
 
         return JsonResponse({'records': employee_payroll})
@@ -267,11 +314,13 @@ def payroll(request):
             end_date = datetime.datetime(selected_year, selected_month, 15)
         elif month_half == '2':
             start_date = datetime.datetime(selected_year, selected_month, 16)
-            end_date =  datetime.datetime(selected_year, selected_month +1, 1) - datetime.timedelta(days=1)
-            # days_in_month = datetime.datetime.replace(day=calendar.monthrange(date.year, date.month)[1]).day
-            # last_day_of_previous_month = date.replace(day=days_in_month) - datetime.timedelta(days=1)
-        # print(start_date)
-        # print(end_date)
+            if selected_month == 12:
+                selected_year = selected_year + 1
+                selected_month = 1
+            else:
+                selected_month = selected_month + 1
+            end_date =  datetime.datetime(selected_year, selected_month, 1) - datetime.timedelta(days=1)
+
         
         records = list(Payrolls.objects.filter(start_date=start_date, end_date = end_date, employee__is_registered = True).prefetch_related('employee').values(
             "employee__dv_user_id",
@@ -288,6 +337,8 @@ def payroll(request):
             "philhealth_contrib",
             "pagibig_contrib",
             "adjustment",
+            'undertime_deduct',
+            'weekend_pay',
             "id"
             ))
         # records = Payrolls.objects.filter(start_date=start_date, end_date=end_date, employee__is_registered=True).select_related('employee').all()
@@ -298,6 +349,7 @@ def payroll(request):
         # context = {
         #     'records':records
         # }        
+        print(records)
         return JsonResponse({"records":records}, safe = False)
     context = {
         'form': FilterSalaryForm(),

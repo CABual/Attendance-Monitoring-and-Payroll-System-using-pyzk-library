@@ -30,18 +30,22 @@ class Payrolls(models.Model):
     meal_allowance = models.DecimalField(max_digits=10,decimal_places=2)
     additional_pay = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     overtime_pay = models.DecimalField(max_digits=10,decimal_places=2)
+    weekend_pay = models.DecimalField(max_digits=10,decimal_places=2, default=0)
     #earning multipliers
+    weekend_work_hr = models.DecimalField(max_digits=4, decimal_places=2, default=0)
     num_present_days = models.IntegerField()
     num_overtime_hr = models.DecimalField(max_digits=4, decimal_places=2)
     #deductions
-    tardiness_deduct = models.DecimalField(max_digits=10,decimal_places=2)
+    undertime_deduct = models.DecimalField(max_digits=10,decimal_places=2, default=0)
+    tardiness_deduct = models.DecimalField(max_digits=10,decimal_places=2,  default=0)
     leave_without_pay = models.DecimalField(max_digits=10,decimal_places=2, default=0)
     sss_contrib = models.DecimalField(max_digits=10,decimal_places=2, default=0)
     philhealth_contrib = models.DecimalField(max_digits=10,decimal_places=2, default=0)
     pagibig_contrib = models.DecimalField(max_digits=10,decimal_places=2, default=0)
     adjustment = models.DecimalField(max_digits=10,decimal_places=2, default=0)
-    #deduction multipliers
+    #deduction multipliers        
     num_tardinesstime_min = models.DecimalField(max_digits=5, decimal_places=2)
+    num_undertime_hr = models.DecimalField(max_digits=5, decimal_places=2,  default=0)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

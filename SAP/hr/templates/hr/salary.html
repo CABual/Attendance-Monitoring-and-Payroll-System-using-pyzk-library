@@ -8,25 +8,25 @@
         <form action="/hr/salary/" method="POST" id="form_search">
             {% csrf_token %}
 
-                <div class="row">
-                    <div class="col-md-3 col-sm-4">
-                        {{ form.date_year.label_tag }}
-                        {{ form.date_year }}
-                    </div>
-                    <div class="col-md-3 col-sm-4">
-                        {{ form.month_half.label_tag }}
-                        {{ form.month_half }}
-                    </div>
-                    <div class="col-md-3 col-sm-4 d-flex align-content-bottom">
-                        <button class="btn btn-primary" type="submit">Apply</button>
-
-                    </div>
+            <div class="row">
+                <div class="col-md-3 col-sm-4">
+                    {{ form.date_year.label_tag }}
+                    {{ form.date_year }}
                 </div>
+                <div class="col-md-3 col-sm-4">
+                    {{ form.month_half.label_tag }}
+                    {{ form.month_half }}
+                </div>
+                <div class="col-md-3 col-sm-4 d-flex align-content-bottom">
+                    <button class="btn btn-primary" type="submit">Apply</button>
+
+                </div>
+            </div>
 
         </form>
         <div class="table-responsive">
             <table class="table table-bordered table-hover table-striped" id="table_records">
-                <thead>     
+                <thead>
                     <tr class="table-dark">
                         <td>Employee ID</td>
                         <td>Position</td>
@@ -34,17 +34,25 @@
                         <td>Basic Pay</td>
                         <td>Meal Allowance</td>
                         <td>No. of Working Days</td>
+                        <td>Weekend Pay</td>
+                        <td>No. of Weekend Working Hours</td>
                         <td>Overtime Pay</td>
                         <td>No. of Overtime Hours</td>
                         <td>Tardiness Deduction</td>
                         <td>No. of Tardiness Minutes</td>
+                        <td>Undertime Deduction</td>
+                        <td>No. of Undertime Hours</td>
                         <td>Methods</td>
-                        
+
 
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -63,7 +71,7 @@
     </div>
 </div>
 <div class="modal fade" id="modal_submit_payroll">
-    <div class="modal-dialog modal-md">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title">Submit Payroll</h4>
@@ -73,96 +81,122 @@
                 <input type="hidden" name="employee_id">
                 <div class="modal-body">
                     <div class="row">
-                        <h5 class="modal-subtitle">Employee</h5>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Position</label>
-                            <input type="text" class="form-control" name="employee_position" disabled>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <h5 class="modal-subtitle">Employee</h5>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">Position</label>
+                                    <input type="text" class="form-control" name="employee_position" disabled>
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">Name</label>
+                                    <input type="text" class="form-control" name="employee_name" disabled>
+                                </div>
+                                <hr class="separator">
+                                <h5 class="modal-subtitle">Earnings</h5>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">Basic Pay</label>
+                                    {{ submit_form.basic_pay }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">Meal Allowance</label>
+                                    {{ submit_form.meal_allowance }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">No. of Days Present</label>
+                                    {{ submit_form.num_present_days }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">Additional Pay</label>
+                                    {{ submit_form.additional_pay }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">Overtime Pay</label>
+                                    {{ submit_form.overtime_pay }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">No. of Overtime Hours</label>
+                                    {{ submit_form.num_overtime_hr }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">Weekend Pay</label>
+                                    {{ submit_form.weekend_pay }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">No. of Wekend Working Hours</label>
+                                    {{ submit_form.weekend_work_hr }}
+                                </div>
+                                <div class="form-group col-sm-12">
+                                    <label for="" class="form-label">Gross Pay:</label>
+                                    <input type="text" name="gross_pay" class="form-control total_pay_deduc" id="gross_pay" disabled>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Name</label>
-                            <input type="text" class="form-control" name="employee_name" disabled>
+                        
+                        <div class="col-md-6 ">
+                            <div class="row">
+                                <h5 class="modal-subtitle">Deductions</h5>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">Tardiness Deductions</label>
+                                    {{ submit_form.tardiness_deduct }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">No. of Minutes of Tardiness </label>
+                                    {{ submit_form.num_tardinesstime_min }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">Undertime Deductions </label>
+                                    {{ submit_form.undertime_deduct }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">No. of Undertime Hours </label>
+                                    {{ submit_form.num_undertime_hr }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">Leave Without Pay </label>
+                                    {{ submit_form.leave_without_pay }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">SSS Contribution </label>
+                                    {{ submit_form.sss_contrib }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">PhilHealth Contribution </label>
+                                    {{ submit_form.philhealth_contrib }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">Pag-ibig Contribution </label>
+                                    {{ submit_form.pagibig_contrib }}
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label for="" class="form-label">Adjustment</label>
+                                    {{ submit_form.adjustment }}
+                                </div>
+                                <div class="form-group col-sm-12">
+                                    <label for="" class="form-label" disabled>Total Deductions:</label>
+                                    <input type="text" class="form-control total_pay_deduc" name="total_deductions"
+                                        id="total_deductions" disabled>
+                                </div>
+                            </div>
                         </div>
-                        <h5 class="modal-subtitle">Earnings</h5>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Basic Pay</label>
-                            {{ submit_form.basic_pay}}
-                        </div>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Meal Allowance</label>
-                            {{ submit_form.meal_allowance}}
-                        </div>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Additional Pay</label>
-                            {{ submit_form.additional_pay}}
-                        </div>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Overtime Pay</label>
-                            {{ submit_form.overtime_pay}}
-                        </div>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">No. of Overtime Hours</label>
-                            {{ submit_form.num_overtime_hr}}
-                        </div>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">No. of Days Present</label>
-                            {{ submit_form.num_present_days}}
-                        </div>
-                        <div class="form-group col-sm-12">
-                            <label for="" class="form-label">Gross Pay:</label>
-                            <input type="text" name="gross_pay" class="form-control" disabled>
-                        </div>
-                        <hr class="separator">
-                        <h5 class="modal-subtitle">Deductions</h5>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Tardiness Deductions</label>
-                            {{ submit_form.tardiness_deduct}}
-                        </div>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">No. of Minutes of Tardiness </label>
-                            {{ submit_form.num_tardinesstime_min}}
-                        </div>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Leave Without Pay </label>
-                            {{ submit_form.leave_without_pay}}
-                        </div>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">SSS Contribution </label>
-                            {{ submit_form.sss_contrib}}
-                        </div>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">PhilHealth Contribution </label>
-                            {{ submit_form.philhealth_contrib}}
-                        </div>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Pag-ibig Contribution </label>
-                            {{ submit_form.pagibig_contrib}}
-                        </div>
-                        <div class="form-group col-sm-6">
-                            <label for="" class="form-label">Adjustment</label>
-                            {{ submit_form.adjustment}}
-                        </div>
-                        <div class="form-group col-sm-12">
-                            <label for="" class="form-label" disabled>Total Deductions:</label>
-                            <input type="text" class="form-control" name="total_deductions" id="total_deductions" disabled>
-                        </div>
-                        <hr class="separator">
-                        <div class="form-group col-sm-12">
-                            <label for="" class="form-label" >Net Pay:</label>
-                            <input type="text" class="form-control" name="net_pay" id="net_pay" disabled>
-                        </div>
-
+                    <hr class="separator">
+                    <div class="form-group col-sm-12">
+                        <label for="" class="form-label">Net Pay:</label>
+                        <input type="text" class="form-control" name="net_pay" id="net_pay"
+                            disabled>
                     </div>
-                </div>
-                <div class="modal-footer">
-
-                            <button class="btn btn-primary" type="submit">Confirm</button>
-                    </div>
 
                 </div>
-            </form>
-            
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" type="submit">Confirm</button>
+            </div>
         </div>
     </div>
+    </form>
+
+</div>
+</div>
 </div>
 
 <!-- {% load static %}
@@ -170,15 +204,39 @@
 
 <script>
     $(document).ready(function() {
+
+        function compute_netPay(){
+            var gross_pay = $("#gross_pay").val()
+            var total_deductions = $("#total_deductions").val()
+            var net_pay = gross_pay - total_deductions
+            $("#net_pay").val(parseFloat(net_pay).toFixed(2))
+        }
+
+        $(".earnings").change(function(){
+            compute_total(className = ".earnings", target = "#gross_pay")
+        });
+        $(".deductions").change(function(){
+            compute_total(className = ".deductions", target = "#total_deductions")
+        });
+        function compute_total(className, target){
+            var input = $(className)
+            var total = 0;
+            for(var i = 0; i < input.length; i++){
+                total += parseFloat($(input[i]).val())
+            } 
+            $(target).val(parseFloat(total).toFixed(2))
+            compute_netPay()
+        }
+
         //console.log(current_date)
-        $("#table_records").on('click', '.btn_submit_payroll', function(event){
+        $("#table_records").on('click', '.btn_submit_payroll', function(event) {
             event.preventDefault()
             var employee_id = $(this).data('id')
             var row = $(this).closest('tr').find('td');
             var rec = {};
             $('#modal_submit_payroll').modal('show');
             console.log(row.find('.employee_position').text())
-            $.each(row, function (index, td) { 
+            $.each(row, function(index, td) {
                 var className = String($(td).attr('class')).replace(/\s/g, "");
                 $("#form_submit_payroll").find(`input[name=${className}]`).val($(td).text())
                 $("#form_submit_payroll").find(`select[name=${className}]`).val($(td).text())
@@ -187,7 +245,7 @@
             });
             $("#form_submit_payroll").find("input[name='employee_id']").val(employee_id)
         })
-        $("#form_submit_payroll").submit(function(event){
+        $("#form_submit_payroll").submit(function(event) {
             event.preventDefault()
             var form = $(this)
             var formData = new FormData(form[0])
@@ -202,7 +260,7 @@
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function (response) {
+                success: function(response) {
                     console.log(response)
                     $("#form_search").trigger('submit')
                     form.trigger('reset')
@@ -216,7 +274,7 @@
         })
 
 
-        
+
         const employees_table = new DataTable("#table_records", {
             autoTableLayout: true,
             // autoWidth: true,
@@ -227,37 +285,88 @@
                     console.log(errors);
                 }
             },
-            columnDefs: [
-                { className: 'employee_position', targets: [0],  },
-                { className: 'employee_name', targets: [1], },
-                { className: 'basic_pay', targets: [2] },
-                { className: 'meal_allowance', targets: [3] },
-                { className: 'num_present_days', targets: [4] },
-                { className: 'overtime_pay', targets: [5] },
-                { className: 'num_overtime_hr', targets: [6] },
-                { className: 'tardiness_deduct', targets: [7] },
-                { className: 'num_tardinesstime_min', targets: [8] },
-                ],
+            columnDefs: [{
+                    className: 'dv_user_id',
+                    targets: [0],
+                },
+                {
+                    className: 'employee_position',
+                    targets: [1],
+                },
+                {
+                    className: 'employee_name',
+                    targets: [2],
+                },
+                {
+                    className: 'basic_pay',
+                    targets: [3]
+                },
+                {
+                    className: 'meal_allowance',
+                    targets: [4]
+                },
+                {
+                    className: 'num_present_days',
+                    targets: [5]
+                },
+                {
+                    className: 'weekend_pay',
+                    targets: [6]
+                },
+                {
+                    className: 'weekend_work_hr',
+                    targets: [7]
+                },
+                {
+                    className: 'overtime_pay',
+                    targets: [8]
+                },
+                {
+                    className: 'num_overtime_hr',
+                    targets: [9]
+                },
+                {
+                    className: 'tardiness_deduct',
+                    targets: [10]
+                },
+                {
+                    className: 'num_tardinesstime_min',
+                    targets: [11]
+                },
+                {
+                    className: 'undertime_deduct',
+                    targets: [12]
+                },
+                {
+                    className: 'num_undertime_hr',
+                    targets: [13]
+                },
+
+            ],
             createdRow: function(row, data, index) {
                 $(row).attr('data-id', data.id);
             },
         });
-        $("#table_records").on('click', '.btn_submit_payroll', function(event){
+        $("#table_records").on('click', '.btn_submit_payroll', function(event) {
             event.preventDefault()
             var id = $(this).data('id')
             var row = $(this).closest('tr').find('td');
+            compute_total(className = ".earnings", target = "#gross_pay")
+            compute_total(className = ".deductions", target = "#total_deductions")
+
             $('#modal_submit_payroll').modal('show');
-            $.each(row, function (index, td) { 
+            $.each(row, function(index, td) {
                 var className = String($(td).attr('class')).replace(/\s/g, "");
                 $("#form_submit_payroll").find(`input[name=${className}]`).val($(td).text())
                 $("#form_submit_payroll").find(`select[name=${className}]`).val($(td).text())
 
             });
         })
-        $("#form_search").submit(function(event){
+        $("#form_search").submit(function(event) {
             event.preventDefault()
             var form = $(this)
             var formData = new FormData(form[0])
+            employees_table.clear()
 
             $.ajax({
                 type: "POST",
@@ -265,11 +374,11 @@
                 data: formData,
                 contentType: false,
                 processData: false,
-                success: function (response) {
+                success: function(response) {
+                    console.log(response)
                     var records = response.records
-                    employees_table.clear()
-
-                    $.each(records, function (id, element) { 
+                    employees_table.draw()
+                    $.each(records, function(id, element) {
                         employees_table.row.add([
                             `${element.employee_info.dv_user_id}`,
                             element.employee_info.position,
@@ -277,10 +386,14 @@
                             element.basic_pay,
                             element.meal_allowance,
                             element.num_present_days,
+                            element.weekend_pay,
+                            element.weekend_work_hr,
                             element.overtime_pay,
                             element.num_overtime,
                             element.tardiness_deduct,
                             element.num_tardinesstime,
+                            element.undertime_deduct,
+                            element.num_undertime_hr,
                             `<button class="btn btn-primary btn_submit_payroll" type="button" data-id="${element.employee_info.id}">Submit Payroll</button>`
 
                         ]).draw()
@@ -290,7 +403,7 @@
                     // ].draw()
                 }
             });
-        
+
         })
         $("#form_search").trigger('submit')
 

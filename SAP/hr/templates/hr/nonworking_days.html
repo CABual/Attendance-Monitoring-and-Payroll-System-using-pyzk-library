@@ -34,21 +34,14 @@
         </div>
     </div>
 </div>
-<div class="card">
-    <div class="card-body">
-
-        <h1 class="card-title">Non-working Days</h1>
-
-
-        <div id='calendar'>
-        </div>
+<div id='calendar' class="w-100">
 
         {% load static %}
 
        
     </div>
 </div>
- <script src="{% static 'calendar-19/js/popper.min.js' %}"></script>
+<script src="{% static 'calendar-19/js/popper.min.js' %}"></script>
 <script src="{% static 'calendar-19/fullcalendar/packages/core/main.js' %}"></script>
 <script src="{% static 'calendar-19/fullcalendar/packages/interaction/main.js' %}"></script>
 <script src="{% static 'calendar-19/fullcalendar/packages/daygrid/main.js' %}"></script>
@@ -105,6 +98,7 @@ $(document).ready(function () {
             }
         },
         events: '/hr/non-working-days/fetch/',
+        eventColor: '#1a1aff',
     });
 
     calendar.render();

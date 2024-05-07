@@ -1,8 +1,13 @@
 <nav class="sidebar sidebar-offcanvas" id="sidebar">
     <ul class="nav">
-        <li class="nav-item nav-category">Main</li>
 
-        <li class="nav-item">
+        <li class="nav-item nav-category"><i class="menu-icon mdi mdi-floor-plan"></i>Biometrics</li>
+        
+        <li class="nav-item"><a class="nav-link" href="/biometrics/employees/">Users</a>
+        </li>
+
+        <li class="nav-item"><a class="nav-link" href="/biometrics/attendances/">Attendance Logs</a></li>
+        {% comment %} <li class="nav-item">
             <a class="nav-link collapsed" data-bs-toggle="collapse" href="#device-panel" aria-expanded="false"
                 aria-controls="#device-panel">
                 <i class="menu-icon mdi mdi-floor-plan"></i>
@@ -17,8 +22,22 @@
                     <li class="nav-item"><a class="nav-link" href="/biometrics/attendances/">Attendance Logs</a></li>
                 </ul>
             </div>
+        </li> {% endcomment %}
+        <li class="nav-item nav-category">Human Resources</li>
+        <li class="nav-item"><a class="nav-link" href="/hr/non-working-days">Non-working Days</a>
         </li>
-        <li class="nav-item">
+
+        <li class="nav-item"><a class="nav-link" href="/hr/attendances/">Attendances</a>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="/hr/employees/">Registered Employees</a>
+        </li>
+
+        <li class="nav-item"><a class="nav-link" href="/hr/salary/">Salary</a>
+        </li>
+
+        <li class="nav-item"><a class="nav-link" href="/hr/payroll/">Payroll</a>
+        </li>
+        {% comment %} <li class="nav-item">
             <a class="nav-link collapsed" data-bs-toggle="collapse" href="#hr-panel" aria-expanded="false"
                 aria-controls="hr-panel">
                 <i class="menu-icon mdi mdi-floor-plan"></i>
@@ -42,7 +61,7 @@
                     </li>
                 </ul>
             </div>
-        </li>
+        </li> {% endcomment %}
 
     </ul>
 </nav>
