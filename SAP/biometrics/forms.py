@@ -107,6 +107,7 @@ class AttendanceForm(forms.ModelForm):
         fields = [
             "timestamp",
             "employee",
+            'overtime',
         ]
         widgets = {
             'timestamp': DateTimeInput(attrs={

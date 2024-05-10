@@ -11,6 +11,7 @@ from django.template import RequestContext
 from django.conf import settings
 from .forms import *
 from .models import *
+# from .models import Payrolls
 from django.forms.models import model_to_dict
 from biometrics.models import Employee
 from .forms import * 
@@ -124,6 +125,7 @@ class Payroll:
                 if (datetime.datetime.combine(datetime.date.today(), data[-1]['timestamp'].time()) - in_timeObj) > timedelta(minutes=30):
                     num_present_days = num_present_days + 1
                     time_InOut[date]['out'] = data[-1]['timestamp'].time()
+                    time_InOut[date]['overtime'] = data[-1]['overtime']
                     out_timeObj = datetime.datetime.combine(datetime.date.today(), time_InOut[date]['out'])
                 
                     
@@ -148,20 +150,27 @@ class Payroll:
                             print(f"saa{ending_timeObj, out_timeObj}")
                             num_undertime += time_diff
                             print(f"{num_undertime= }")
+                            time_InOut[date]['is_overtime'] = False
+                            
                         else:
                             time_InOut[date]['is_undertime'] = False
-                        
-                        if time_InOut[date]['out'] > ending_time:
-                            time_InOut[date]['is_overtime'] = True
-                            time_diff = out_timeObj - ending_timeObj
-                            time_InOut[date]['overtime'] = time_diff
-                            num_overtime += time_diff
-                        else:
-                            time_InOut[date]['is_overtime'] = False
-                            time_diff = ending_timeObj - out_timeObj
-                            print(f"saa{ending_timeObj, out_timeObj}")
-                            num_undertime += time_diff
-                            print(f"{num_undertime= }")
+                            print(time_InOut[date]['overtime'])
+                            # if time_InOut[date]['out'] > ending_time:
+                            if time_InOut[date]['overtime'] == True:
+                            
+                                time_InOut[date]['is_overtime'] = True
+                                time_diff = out_timeObj - ending_timeObj
+                                time_InOut[date]['overtime'] = time_diff
+                                num_overtime += time_diff
+                            else:
+                                time_InOut[date]['is_overtime'] = False
+                                    
+                            # else:
+                            #     time_InOut[date]['is_overtime'] = False
+                            #     time_diff = ending_timeObj - out_timeObj
+                            #     print(f"saa{ending_timeObj, out_timeObj}")
+                            #     num_undertime += time_diff
+                            #     print(f"{num_undertime= }")
                             
                 else:
                     if time_InOut[date]['out'] == None:
@@ -230,7 +239,7 @@ def salary(request):
         # print(start_date)
         # print(end_date)
         
-        records = list(Attendances.objects.filter(timestamp__range=[start_date, end_date], employee__is_registered = True).select_related('employee').order_by('-timestamp').values('timestamp', 'employee__dv_name', 'employee__dv_user_id', 'employee_id'))
+        records = list(Attendances.objects.filter(timestamp__range=[start_date, end_date], employee__is_registered = True).select_related('employee').order_by('-timestamp').values('timestamp', 'overtime','employee__dv_name', 'employee__dv_user_id', 'employee_id'))
 
         employee_list = list(Employee.objects.filter(is_registered = True).values())
         employee_attendance = {}
@@ -514,7 +523,7 @@ def submit_payroll(request, employee_id):
         else:
             return JsonResponse({'error': form.errors})
 def delete_payroll(request, id):
-    record = get_object_or_404(Payroll, id = id)
+    record = get_object_or_404(Payrolls, id = id)
     record.delete()
     return JsonResponse({'message': 'Deleted successfully.'})
 

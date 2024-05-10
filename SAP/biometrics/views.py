@@ -28,20 +28,40 @@ def index(request):
         context['form'] = DeviceForm()
         
         return render(request, 'biometrics/index.html', context)
+def try_device(request):
+    device = Device.objects.latest('id')
+    # ip = '169.254.92.150'
+    # port = 4370
+    ip = str(device.ip_address)
+    port = int(device.port)
+    
+    print(f"{ip=}")
+    print(f"{port=}")
+    conn = None
+    zk = ZK(ip, port=port, timeout=5, password=0, force_udp=False, ommit_ping=False)
+    
+    try:
+        conn = zk.connect()
+        users = conn.get_users()
+
+        conn.disable_device()
+                
+        conn.test_voice(10)
+        conn.test_voice(0)
+        conn.enable_device() 
+        return JsonResponse('Success: You can connect to this device!',safe=False)
+    except Exception as e:
+        print ("Process terminate : {}".format(e))
+        return JsonResponse('Error: Please check your device configuration and try again.',safe=False)
+    finally:
+        if conn:
+            conn.disconnect()
+    # return JsonResponse('Success',safe=False)
+
 def fetch_device(request):
     record = Device.objects.latest('id')
     return JsonResponse({'record': model_to_dict(record)}, safe=False)
-# def save_device(request):
-#     if request.method == "POST":
 
-#         form = DeviceForm(request.POST or None)
-    
-#         if form.is_valid():
-#             form.save()
-#             return JsonResponse({'success': "Success"})
-#     else:
-        
-        
 @login_required
 def employees(request):
     context = {}
@@ -103,7 +123,7 @@ def delete_attendance(request, id):
 
 def fetch_attendances(request):
     records = list(Attendances.objects.select_related('employee').values(
-        'id', 'uid' , 'timestamp', 'status', 'punch', 'employee__dv_name', 'employee_id'
+        'id', 'uid' , 'timestamp', 'overtime' , 'status', 'punch', 'employee__dv_name', 'employee_id'
     ).order_by("-timestamp"))
     return JsonResponse({'records':records}, safe=False)
 
@@ -122,6 +142,8 @@ def download_employees(request):
     try:
         conn = zk.connect()
         users = conn.get_users()
+        conn.disable_device()
+        conn.test_voice(18)
         saved_employees = list(Employee.objects.all().values_list('dv_user_id', flat= True))
         # print(saved_employees)
         for user in users:
@@ -139,13 +161,16 @@ def download_employees(request):
                 
         conn.test_voice()
         conn.enable_device() 
+        return JsonResponse('Downloaded Successfully!',safe=False)
+        
     except Exception as e:
         print ("Process terminate : {}".format(e))
-    
+        return JsonResponse('Error: Please check your device configuration and try again.',safe=False)
+
     finally:
         if conn:
             conn.disconnect()
-    return JsonResponse('Success',safe=False)
+    # return JsonResponse('Success',safe=False)
 def download_attendance(request): 
     
     device = Device.objects.latest('id')
@@ -162,6 +187,8 @@ def download_attendance(request):
         
         # connect to device
         conn = zk.connect()
+        conn.disable_device()
+        conn.test_voice(18)
         attendances = conn.get_attendance()
         att_map = {}
         saved_attendance = Attendances.objects.all().values_list('uid', flat= True)
@@ -200,11 +227,12 @@ def download_attendance(request):
                 
         conn.test_voice()
         conn.enable_device()
+        return JsonResponse('Downloaded Successfully!',safe=False)
         
     except Exception as e:
-        print ("Process terminate : {}".format(e))
+        return JsonResponse('Error: Please check your device configuration and try again.',safe=False)
+        
     finally:
         if conn:
             conn.disconnect()
-    return JsonResponse('Success', safe=False)
 

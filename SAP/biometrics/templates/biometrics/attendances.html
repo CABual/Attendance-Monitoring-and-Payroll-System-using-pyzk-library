@@ -3,7 +3,10 @@
 <div class="card">
     <div class="card-body">
         <h1 class="card-title">attendances</h1>
-        <button class="btn btn-primary" id="btn_download_attendances">Download Attendances</button>
+        <button class="btn btn-primary" id="btn_download_attendances"><span class="spinner-border spinner-border-sm text-secondary d-none" role="status">
+  <span class="visually-hidden">Loading...</span>
+        </span> Download Attendances</button>
+
         <div class="table-responsive">
             <form id="form_add">
                 {% csrf_token %}
@@ -30,6 +33,7 @@
                         <td>UID</td>
                         <td>Employee Name(Device)</td>
                         <td>Timestamp</td>
+                        <td>Overtime</td>
                         <td>Status</td>
                         <td>Punch</td>
                         <td>Employee ID</td>
@@ -48,12 +52,17 @@
         <div class="modal-content">
             <h5 class="modal-title">Delete Attendance</h5>
             <form id="form_delete">
-                {% csrf_token %}
-                <input type="hidden" name="id">
-                <p>Are you sure you want to delete?</p>
-                <button class="btn btn-secondary"data-dismiss="modal">Close</button>
-                <button class="btn btn-danger" type="submit">Confirm</button>
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <input type="hidden" name="id">
+                    <p>Are you sure you want to delete?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary"data-dismiss="modal">Close</button>
+                    <button class="btn btn-danger" type="submit">Confirm</button>
+                </div>
             </form>
+
         </div>
 
     </div>
@@ -91,10 +100,20 @@
 <script src="{% static 'attendance.js' %}"></script> {% endcomment %}
 <script>
     $(document).ready(function() {
+        $("#id_overtime").change(function(event) {
+            if ($(this).prop('checked')) {
+                $(this).val('true')
+            } else {
+                $(this).val('false')
+            }
+        })
         
         $("#btn_download_attendances").click(function (e) { 
             e.preventDefault();
             console.log('hehe')
+            var button = $(this)
+            $(button).attr('disabled', true)
+            $(button).find("span").removeClass("d-none")
             $.ajax({
                 type: "GET",
                 url: "/biometrics/download/attendance/",
@@ -102,7 +121,10 @@
                 //     ip: "169.254.92.150",
                 // },
                 success: function (response) {
-                    console.log(response)
+                    alert(response)
+                    $(button).attr('disabled', false)
+                    $(button).find("span").addClass("d-none")
+                            
                     employees_table.ajax.reload()
 
                 },
@@ -113,6 +135,7 @@
 
                 }
             });
+
         });
 
         $("#form_add").submit(function(event) {
@@ -244,6 +267,9 @@
                         let date = new Date(timestamp);
                         return row.timestamp
                     }
+                },
+                {
+                    data:'overtime'
                 },
                 {
                     data: 'status'

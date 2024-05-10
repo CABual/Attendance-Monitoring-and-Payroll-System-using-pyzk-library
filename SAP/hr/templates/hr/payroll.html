@@ -303,6 +303,9 @@
                 success: function(response) {
                     console.log(response)
                     records = response
+                    var form = $("#form_search");
+                    var formData = new FormData(form[0]);
+                    form_search(formData)
 
                 }
             });

@@ -8,7 +8,7 @@
 <button class="btn btn-primary" id="btn_download_employees">Download Employees</button> {% endcomment %}
         <h5 class="card-title">Device Manager</h5>
         <button class="btn btn-warning" id="btn_change">Change</button>
-
+        <button class="btn btn-success" id="btn_try">Try</button>
         <form action="/biometrics/" method="POST" id="form_save_device">
             {% csrf_token %}
             <div class="row">
@@ -40,6 +40,17 @@
 </div>
 <script>
     $(document).ready(function () {
+        $("#btn_try").click(function(){
+            $.ajax({
+            type: "GET",
+            url: "/biometrics/device/try/",
+
+            success: function (response) {
+                alert(response)
+            }
+        });
+        })
+
         $("#btn_change").click(function(){
             $(this).addClass("d-none")
             $(".btn_form").removeClass('d-none')

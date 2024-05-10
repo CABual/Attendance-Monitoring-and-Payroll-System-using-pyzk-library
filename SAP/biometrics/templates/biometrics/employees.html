@@ -4,7 +4,9 @@
 <div class="card">
     <div class="card-body">
         <h1 class="card-title">Employees</h1>
-        <button class="btn btn-primary" id="btn_download_employees">Download Employees</button>
+        <button class="btn btn-primary" id="btn_download_employees"><span class="spinner-border spinner-border-sm text-secondary d-none" role="status">
+  <span class="visually-hidden">Loading...</span>
+        </span>Download Employees</button>
         <div class="table-responsive">
             <table class="table table-bordered table-hover table-striped" id="table_records">
                 <thead>
@@ -123,12 +125,17 @@
     $(document).ready(function () {
         $("#btn_download_employees").click(function (e) { 
             e.preventDefault();
+            var button = $(this)
+            $(button).attr('disabled', true)
+            $(button).find("span").removeClass("d-none")
             $.ajax({
                 type: "GET",
                 url: "/biometrics/download/employees/",
                 success: function (response) {
-                    console.log(response)
-                    employees_table.ajax.reload()
+                    alert(response)
+                    employees_table.ajax.reload()   
+                    $(button).attr('disabled', false)
+                    $(button).find("span").addClass("d-none")
                 },
                 error: function(xhr, status, error) {
                     console.error(xhr.responseText);

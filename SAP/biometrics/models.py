@@ -44,6 +44,7 @@ class Attendances(models.Model):
     timestamp = models.DateTimeField(max_length=50)
     status = models.IntegerField(null=True)
     punch = models.IntegerField(null=True)
+    overtime = models.BooleanField(default=False)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     
     # def to_dict(self):

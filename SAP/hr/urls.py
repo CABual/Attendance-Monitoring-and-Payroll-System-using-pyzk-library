@@ -26,7 +26,7 @@ urlpatterns = [
     path("payroll/fetch/<int:id>/", views.fetch_payroll_details),
     path("salary/", views.salary, name=""),
     path("payroll/", views.payroll,),
-    path('payroll/delete/<int:id>', views.delete_payroll), 
+    path('payroll/delete/<int:id>/', views.delete_payroll), 
 
 
 ]
