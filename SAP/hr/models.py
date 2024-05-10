@@ -1,15 +1,16 @@
 from django.db import models
 from biometrics . models import Employee
 # Create your models here.
-class NonWorkingDays(models.Model):
-    date = models.DateField(null=False, blank=False)
-    reason = models.CharField(max_length=255, null=False, blank=False)
-
+class Events(models.Model):
+    start_date = models.DateField(null=False, blank=False)
+    end_date = models.DateField(null=True, blank=False)
+    name = models.CharField(max_length=255, null=False, blank=False)
+    # description = models.CharField(max_length=255, null=True, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.date} - {self.reason}"
+        return f"{self.name} {self.start_date} - {self.end_date}"
     
 # class Salary(models.Model):
 #     base_salary = models.FloatField()

@@ -1,10 +1,101 @@
 {% extends 'layouts/layout.html' %}
 {% block content %}
-<button class="btn btn-primary" id="btn_download_attendances">Download Attendances</button>
-<button class="btn btn-primary" id="btn_download_employees">Download Employees</button>
 
 
- {% load static %}
+<div class="card">
+    <div class="card-body">
+                {% comment %} <button class="btn btn-primary" id="btn_download_attendances">Download Attendances</button>
+<button class="btn btn-primary" id="btn_download_employees">Download Employees</button> {% endcomment %}
+        <h5 class="card-title">Device Manager</h5>
+        <button class="btn btn-warning" id="btn_change">Change</button>
+
+        <form action="/biometrics/" method="POST" id="form_save_device">
+            {% csrf_token %}
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <label for="" class="form-label">Device Name</label>
+                    {{form.device_name}}
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="" class="form-label">Serial Number</label>
+                    {{form.serial_number}}
+                </div>            
+                <div class="form-group col-md-6">
+                    <label for="" class="form-label">IP Adress</label>
+                    {{form.ip_address}}
+                </div>            
+                <div class="form-group col-md-6">
+                    <label for="" class="form-label">Port</label>
+                    {{form.port}}
+                </div>
+            </div>
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-secondary d-none btn_form" type="button" id="btn_cancel_change">Cancel</button>
+                <button class="btn btn-primary d-none btn_form" type="submit">Configure</button>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $("#btn_change").click(function(){
+            $(this).addClass("d-none")
+            $(".btn_form").removeClass('d-none')
+            $("#form_save_device").find('input').attr('disabled', false)
+        })
+        $("#btn_cancel_change").click(function(){
+            return_default()
+        })
+        function return_default(){
+            $("#btn_change").removeClass("d-none")
+            $(".btn_form").addClass('d-none')
+            $("#form_save_device").find('input').attr('disabled', true)
+        }
+
+        fetch_latest()
+        function fetch_latest(){
+            $.ajax({
+                    type: "GET",
+                    url: "/biometrics/device/fetch/latest",
+
+                    success: function (response) {
+                        device = response.record
+                        form = $("#form_save_device")
+                        console.log(device)
+                        $.each(device, function (key, value) { 
+                            form.find(`input[name="${key}"]`).val(value)
+                            form.find(`select[name="${key}"]`).val(value)
+                        });
+                    }
+                });
+        }
+        $("#form_save_device").submit(function (e) { 
+            e.preventDefault();
+            var form = $(this)
+            var formData = new FormData(form[0])
+            $.ajax({
+                type: "POST",
+                url: "/biometrics/",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    device = response.device
+                    console.log(response)
+                    $.each(device, function (key, value) { 
+                        form.find(`input[name="${key}"]`).val(value)
+                        form.find(`select[name="${key}"]`).val(value)
+                    });
+                    return_default()    
+
+                }
+            });
+        });
+    });
+</script>
+{% load static %}
 <script src="{% static 'index.js' %}"></script>
 
 {% endblock %}

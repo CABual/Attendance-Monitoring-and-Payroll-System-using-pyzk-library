@@ -3,10 +3,10 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("non-working-days/", views.nonworking_days, name="nonworking_days"),
-    path("non-working-days/add/", views.add_nonworking_days, name=""),
-    path("non-working-days/fetch/", views.fetch_nonworking_days, name=""),
-
+    path("events/", views.events, ),
+    path("events/add/", views.add_events, name=""),
+    path("events/fetch/", views.fetch_events, name=""),
+    path("events/delete/<int:id>/", views.delete_events, name=""),
     path('employees/', views.employees),
     path('employees/register/<int:id>/', views.register_employee),
     path('employees/unregister/<int:id>/', views.unregister_employee),
@@ -17,7 +17,7 @@ urlpatterns = [
     path("employees/delete/<int:id>/", views.delete_employee, name=""),
     path("employees/update/<int:id>/", views.update_employee),
     path("employees/unregistered/fetch/", views.fetch_unregistered_employees, name=""),
-    path("employees/compute-salary", views.compute_salary),
+    # path("employees/compute-salary", views.compute_salary),
     path("attendances/fetch/", views.fetch_attendances, name=""),
     path("attendances/download/", views.download_attendances, name=""),
     path("attendances/", views.attendances, name=""),
@@ -25,7 +25,8 @@ urlpatterns = [
     path("payroll/submit/<int:employee_id>/", views.submit_payroll, name=""),
     path("payroll/fetch/<int:id>/", views.fetch_payroll_details),
     path("salary/", views.salary, name=""),
-    path("payroll/", views.payroll,)
+    path("payroll/", views.payroll,),
+    path('payroll/delete/<int:id>', views.delete_payroll), 
 
 
 ]

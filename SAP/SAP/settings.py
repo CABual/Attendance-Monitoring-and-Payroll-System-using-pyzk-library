@@ -21,6 +21,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-kz5-2sfw2i5fb3_8#7(jp^i@p245tv0-767a-39&oob4vdamjj'
 
+LOGIN_REDIRECT_URL = '/biometrics/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -38,6 +43,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'biometrics.apps.BiometricsConfig',
     'hr.apps.HRConfig',
+    'account.apps.AccountConfig',
+    # The line `'auth.apps.AuthConfig',` in the `INSTALLED_APPS` setting of a Django project is
+    # registering the `AuthConfig` class from the `auth` app as an installed application in the
+    # project.
+    # 'auth.apps.AuthConfig',
+    
     
     'jquery',
 

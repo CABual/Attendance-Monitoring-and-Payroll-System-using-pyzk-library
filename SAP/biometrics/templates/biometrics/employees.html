@@ -8,7 +8,7 @@
         <div class="table-responsive">
             <table class="table table-bordered table-hover table-striped" id="table_records">
                 <thead>
-                    <tr>
+                    <tr class="table-dark">
                         <td>ID</td>
                         <td>Name (Device)</td>
                         <td>Position</td>
@@ -121,6 +121,23 @@
 
 <script>
     $(document).ready(function () {
+        $("#btn_download_employees").click(function (e) { 
+            e.preventDefault();
+            $.ajax({
+                type: "GET",
+                url: "/biometrics/download/employees/",
+                success: function (response) {
+                    console.log(response)
+                    employees_table.ajax.reload()
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                    console.log(xhr, status, error);
+                    alert("Error Occurred")
+                }
+            });
+            
+        });
         const employees_table = new DataTable("#table_records", {
             autoTableLayout: true,
             // autoWidth: true,

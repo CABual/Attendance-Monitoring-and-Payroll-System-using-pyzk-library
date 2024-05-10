@@ -6,23 +6,26 @@
             </button>
         </div>
         <div>
-            <a class="navbar-brand brand-logo" href="../index.html">
-                <img src="https://smdc.com/content/themes/smdc/dist/images/mobile_nav_logo2.svg" alt="logo" />
+            <a class="navbar-brand brand-logo" href="/biometrics/">
+                <img src="https://scontent.fmnl9-3.fna.fbcdn.net/v/t39.30808-6/416361143_122125727582089381_3309425164273868685_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=5f2048&_nc_eui2=AeG4FJYx_TDkIQizMp7LLNqWmC6XjumrQbCYLpeO6atBsP6v95w4hrdRzma2bA0Ha_p3PaDUECChLzNKspA18lPU&_nc_ohc=-kK-fpTpCEkQ7kNvgHM3M3b&_nc_ht=scontent.fmnl9-3.fna&oh=00_AfD05ta2KjoeYaDc0lzXiW--7XsDQvqzMLbHsXVw-CQcLA&oe=66423F99" alt="logo" />
             </a>
-            <a class="navbar-brand brand-logo-mini" href="../index.html">
-                <img src="https://smdc.com/content/themes/smdc/dist/images/mobile_nav_logo2.svg" alt="logo" />
+            <a class="navbar-brand brand-logo-mini" href="/biometrics/">
+                <img src="https://scontent.fmnl9-3.fna.fbcdn.net/v/t39.30808-6/416361143_122125727582089381_3309425164273868685_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=5f2048&_nc_eui2=AeG4FJYx_TDkIQizMp7LLNqWmC6XjumrQbCYLpeO6atBsP6v95w4hrdRzma2bA0Ha_p3PaDUECChLzNKspA18lPU&_nc_ohc=-kK-fpTpCEkQ7kNvgHM3M3b&_nc_ht=scontent.fmnl9-3.fna&oh=00_AfD05ta2KjoeYaDc0lzXiW--7XsDQvqzMLbHsXVw-CQcLA&oe=66423F99" alt="logo" />
             </a>
         </div>
     </div>
     <div class="navbar-menu-wrapper d-flex align-items-top">
         <ul class="navbar-nav">
             <li class="nav-item font-weight-semibold d-none d-lg-block ms-0">
-                <h1 class="welcome-text">Welcome to, <span class="text-black fw-bold">SMDC Admin</span></h1>
+                <h1 class="welcome-text">Welcome to, <span class="text-black fw-bold">ABIC Corporation's Attendance System</span></h1>
             </li>
         </ul>
         <ul class="navbar-nav ms-auto">
-
-            <li class="nav-item dropdown">
+                    <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Log Out</button>
+        </form>
+            {% comment %} <li class="nav-item dropdown">
                 <a class="nav-link count-indicator position-relative" id="countDropdown" href="#"
                     data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="icon-mail icon-lg"></i>
@@ -40,11 +43,11 @@
                     </a>
                     <div class="dropdown-divider"></div>
                 </div>
-            </li>
+            </li> {% endcomment %}
             <li class="nav-item dropdown d-none d-lg-block user-dropdown">
-                <a class="nav-link" id="UserDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                {% comment %} <a class="nav-link" id="UserDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                     <img class="img-xs rounded-circle" src="../assets/images/faces/face8.jpg" alt="Profile image">
-                </a>
+                </a> {% endcomment %}
                 <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="UserDropdown">
                     <div class="dropdown-header text-center">
                         <img class="img-md rounded-circle" src="../assets/images/faces/face8.jpg" alt="Profile image">

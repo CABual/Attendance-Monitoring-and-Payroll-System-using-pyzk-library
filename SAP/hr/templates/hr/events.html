@@ -19,7 +19,7 @@
     <div class="modal-dialog"> 
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Add Non-Working Days</h5>
+                <h5 class="modal-title">Add Events</h5>
             </div>
             <form id="form_add">
                 {% csrf_token %}
@@ -27,35 +27,61 @@
                         {{ form }}
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-secondary btn-cancel" type="button" data-dismiss="modal">Cancel</button>
                     <button class="btn btn-primary" type="submit">Confirm</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+<div class="modal fade" id="modal_delete">
+    <div class="modal-dialog"> 
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Events</h5>
+
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-md-9">
+                        <select name="" id="select_event_list" class="form-select">Events</select>
+                    </div>  
+                    <div class="col-md-3">
+                        <button class="btn btn-danger" id="btn_delete">Delete</button>
+                        
+                    </div>
+                </div>
+            </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-cancel" type="button" data-dismiss="modal">Cancel</button>
+                </div>
+        </div>
+    </div>
+</div>
 <div id='calendar' class="w-100">
 
-        {% load static %}
+    {% load static %}
 
-       
-    </div>
+</div>
 </div>
 <script src="{% static 'calendar-19/js/popper.min.js' %}"></script>
 <script src="{% static 'calendar-19/fullcalendar/packages/core/main.js' %}"></script>
 <script src="{% static 'calendar-19/fullcalendar/packages/interaction/main.js' %}"></script>
 <script src="{% static 'calendar-19/fullcalendar/packages/daygrid/main.js' %}"></script>
 
-
 <script>
 $(document).ready(function () {
+    $(".btn-cancel").click(function(){
+        //console.log('close')
+        $(this).closest('.modal').modal('hide')
+    })
     $("#form_add").submit(function(event) {
         event.preventDefault()
         var form = $(this)
         var formData = new FormData(form[0])
         $.ajax({
             type: "POST",
-            url: "/hr/non-working-days/add/",
+            url: "/hr/events/add/",
             data: formData,
             processData: false,
             contentType: false,
@@ -74,9 +100,42 @@ $(document).ready(function () {
             }
         });
     })
+    $("#btn_delete").click(function(){
+        var event_id = $("#select_event_list").val()
+        console.log(event_id)
+        $.ajax({
+            type: "GET",
+            url: `/hr/events/delete/${event_id}`,
+            success: function (response) {
+                console.log(response)
+                fetch_event_list()
+                calendar.refetchEvents();
+            }
+        });
+    })
+    function fetch_event_list(){
+        var modal = $("#modal_delete")
+
+        $.ajax({
+            type: "GET",
+            url: "/hr/events/fetch/",
+            success: function (response) {
+                records = response
+                var select = $("#select_event_list")
+
+                select.empty()
+                select.append(`<option disabled selected>--Select Events to Delete--</option>`)
+                $.each(records, function (key, value) { 
+                    console.log(key, value)
+                    select.append(`<option value="${value.id}">${value.title} ${value.start}-${value.end}</option>`)
+                });
+                modal.modal('show')
+                {% comment %} console.log(response) {% endcomment %}
+            }
+        });
+    }
 
     var calendarEl = document.getElementById('calendar');
-
     // This arrangement can be altered based on how we want the date's format to appear.
     var calendar = new FullCalendar.Calendar(calendarEl, {
         plugins: ['interaction', 'dayGrid'],
@@ -86,32 +145,37 @@ $(document).ready(function () {
         header: {
             left: 'prev,next today',
             center: 'title',
-            right: 'dayGridMonth,dayGridWeek,dayGridDay addButton'
+            right: 'dayGridMonth,dayGridWeek,dayGridDay addButton, deleteButton'
         },
         customButtons: {
             addButton: {
                 text: 'Add',
                 click: function() {
                     $("#modal_add").modal('show')
-
+                }
+            },
+            deleteButton: {
+                text: 'Delete',
+                click: function() {
+                    fetch_event_list()
                 }
             }
         },
-        events: '/hr/non-working-days/fetch/',
+        events: '/hr/events/fetch/',
         eventColor: '#1a1aff',
+
     });
 
     calendar.render();
 
 });
     //document.addEventListener('DOMContentLoaded', function() {
-       
     //});
 </script>
 
-<script src="js/main.js"></script>
+{% comment %} <script src="js/main.js"></script> {% endcomment %}
 
-{% load static %}
+{% comment %} {% load static %} {% endcomment %}
 {% comment %}
 <script src="{% static 'index.js' %}"></script> {% endcomment %}
 

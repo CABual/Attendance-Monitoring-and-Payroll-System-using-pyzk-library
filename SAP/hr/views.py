@@ -9,7 +9,7 @@ from collections import defaultdict
 from django import forms
 from django.template import RequestContext
 from django.conf import settings
-from .forms import SearchAttendanceForm, NonWorkingDaysForm
+from .forms import *
 from .models import *
 from django.forms.models import model_to_dict
 from biometrics.models import Employee
@@ -20,6 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 from dateutil import parser
 import json
 from django.core.serializers import serialize
+from django.contrib.auth.decorators import login_required
 
 # from django.http import QueryDict
 
@@ -200,7 +201,7 @@ class Payroll:
 
         
 
-
+@login_required
 def salary(request):
     
     if request.method == 'POST':
@@ -283,21 +284,25 @@ def salary(request):
             'submit_form': PayrollForm()
         }        
         return render(request, 'hr/salary.html', context)
-
+@login_required
 def index(request):
     return render(request, 'hr/index.html')
+@login_required
 def attendances(request):
     context = {}
     context['form'] = SearchAttendanceForm()
     return render(request, 'hr/attendance.html', context)
-def nonworking_days(request):
+@login_required
+def events(request):
     context = {}
-    context['form'] = NonWorkingDaysForm()
-    return render(request, 'hr/nonworking_days.html', context)
+    context['form'] = EventForms()
+    return render(request, 'hr/events.html', context)
+@login_required
 def employees(request):
     context = {}
     context['form'] = EmployeeForm()
     return render(request, 'hr/employees.html', context)
+@login_required
 def payroll(request):
     if request.method == 'POST':
         date_year = request.POST.get('date_year')
@@ -508,6 +513,11 @@ def submit_payroll(request, employee_id):
             return JsonResponse({'success': 'Success'})
         else:
             return JsonResponse({'error': form.errors})
+def delete_payroll(request, id):
+    record = get_object_or_404(Payroll, id = id)
+    record.delete()
+    return JsonResponse({'message': 'Deleted successfully.'})
+
 
 def add_attendances(request):
     if request.method == "POST":
@@ -571,26 +581,29 @@ def fetch_attendances(request):
     return JsonResponse({'records': records}, safe=True)
 
 
-def add_nonworking_days(request):
+def add_events(request):
     if request.method == "POST":
 
-        form = NonWorkingDaysForm(request.POST or None)
+        form = EventForms(request.POST or None)
     
         if form.is_valid():
             form.save()
     return JsonResponse({'success': "Success"})
-def fetch_nonworking_days(request):
-    records = list(NonWorkingDays.objects.values())
+def fetch_events(request):
+    records = list(Events.objects.values())
     for record in records:
-        record['start'] = record['date']
-        record['title'] = record['reason']
-        del record['date']
-        del record['reason']
+        record['start'] = record['start_date']
+        record['end'] = record['end_date']
+        record['title'] = record['name']
+        del record['start_date']
+        del record['end_date']
+        del record['name']
     
     return JsonResponse(records, safe=False)
-
-def compute_salary(request):
-    base_salary = 4000.00
+def delete_events(request, id):
+    record = get_object_or_404(Events, id = id)
+    record.delete()
+    return JsonResponse({'message': 'Deleted successfully.'})
     
 
 # def update_attendance(request, id):
@@ -599,7 +612,7 @@ def compute_salary(request):
 #     if form.is_valid():
 #         form.save()
 #     return JsonResponse(model_to_dict(form.instance))
-# def delete_attendance(request, id):
-#     record = get_object_or_404(Attendances, id = id)
-#     record.delete()
-#     return JsonResponse({'message': 'Deleted successfully.'})
+def delete_attendance(request, id):
+    record = get_object_or_404(Attendances, id = id)
+    record.delete()
+    return JsonResponse({'message': 'Deleted successfully.'})

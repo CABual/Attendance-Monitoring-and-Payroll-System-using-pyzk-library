@@ -4,14 +4,45 @@ from zk import ZK, const
 from .models import Attendances, Employee
 from django.core import serializers
 from django.forms.models import model_to_dict
-from . forms import EmployeeForm, AttendanceForm
+from . forms import *
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
+@login_required
 def index(request):
     # return HttpResponse('hello, World')
-    return render(request, 'biometrics/index.html')
+    if request.method == "POST":
+
+        form =DeviceForm(request.POST or None)
+
+        if form.is_valid():
+            form.save()
+            latest_device = Device.objects.latest('id')
+            device = model_to_dict(latest_device)
+            return JsonResponse({'device':device })
+    else:
+        context = {
+        }
+        context['form'] = DeviceForm()
+        
+        return render(request, 'biometrics/index.html', context)
+def fetch_device(request):
+    record = Device.objects.latest('id')
+    return JsonResponse({'record': model_to_dict(record)}, safe=False)
+# def save_device(request):
+#     if request.method == "POST":
+
+#         form = DeviceForm(request.POST or None)
+    
+#         if form.is_valid():
+#             form.save()
+#             return JsonResponse({'success': "Success"})
+#     else:
+        
+        
+@login_required
 def employees(request):
     context = {}
     context['form'] = EmployeeForm()
@@ -39,6 +70,7 @@ def delete_employee(request, id):
 
 # def add_attendances(request):
 #     con
+@login_required
 def attendances(request):
     context = {}
     form = AttendanceForm()
@@ -52,7 +84,7 @@ def add_attendances(request):
     
         if form.is_valid():
             form.save()
-    return JsonResponse({'success': "Success"})
+            return JsonResponse({'success': "Success"})
 def fetch_attendance_detail(request, id):
     record = get_object_or_404(Attendances, id = id)
     return JsonResponse(model_to_dict(record))
@@ -76,9 +108,16 @@ def fetch_attendances(request):
     return JsonResponse({'records':records}, safe=False)
 
 def download_employees(request):
-    ip = '169.254.92.150'
+    device = Device.objects.latest('id')
+    # ip = '169.254.92.150'
+    # port = 4370
+    ip = str(device.ip_address)
+    port = int(device.port)
+    
+    print(f"{ip=}")
+    print(f"{port=}")
     conn = None
-    zk = ZK(ip, port=4370, timeout=5, password=0, force_udp=False, ommit_ping=False)
+    zk = ZK(ip, port=port, timeout=5, password=0, force_udp=False, ommit_ping=False)
     
     try:
         conn = zk.connect()
@@ -98,7 +137,8 @@ def download_employees(request):
             else:
                 emp = Employee.objects.filter(dv_user_id=user.user_id).update(dv_name=user.name)
                 
-        
+        conn.test_voice()
+        conn.enable_device() 
     except Exception as e:
         print ("Process terminate : {}".format(e))
     
@@ -108,13 +148,16 @@ def download_employees(request):
     return JsonResponse('Success',safe=False)
 def download_attendance(request): 
     
-    # if request.method == 'POST':
-        
-    #     print(request.POST)
-    #     return JsonResponse("heheh")
-    ip = '169.254.92.150'
+    device = Device.objects.latest('id')
+    # ip = '169.254.92.150'
+    # port = 4370
+    ip = str(device.ip_address)
+    port = int(device.port)
+    
+    print(f"{ip=}")
+    print(f"{port=}")
     conn = None
-    zk = ZK(ip, port=4370, timeout=5, password=0, force_udp=False, ommit_ping=False)
+    zk = ZK(ip, port=port, timeout=5, password=0, force_udp=False, ommit_ping=False)
     try:
         
         # connect to device
@@ -132,8 +175,11 @@ def download_attendance(request):
                 att_map[attendance.user_id].append(attendance)
                 # print(attendance.timestamp)
         for employee, attend_obj in att_map.items():
-            new_employee = Employee(dv_user_id=employee, dv_name=employee)
-            new_employee.save()
+            try:
+                new_employee = Employee(dv_user_id=employee, dv_name=employee)
+                new_employee.save()
+            except:
+                new_employee = Employee.objects.get(dv_user_id=employee)
             for attend in attend_obj:
                 # new_attendance = Attendances(uid=attend.uid,
                 #                          timestamp = attend.timestamp,

@@ -248,7 +248,6 @@
                                 <td></td>
                                 <td><span class="td-total_deductions"></span></td>
                             </tr>
-                            <tr></tr>
                             <tr class="table-secondary">
                                 <td colspan="4"><b>Net Pay</b></td>
                                 <td><span class="td-net_pay"></span></td>
@@ -272,9 +271,7 @@
 			const button = document.getElementById('btn_export_pdf');
 
 			function generatePDF() {
-				// Choose the element that your content will be rendered to.
 				const element = document.getElementById('payroll_view');
-				// Choose the element and save the PDF for your user.
 				html2pdf().from(element).save();
 			}
 
@@ -295,6 +292,21 @@
 
             });
         });
+        {% comment %} payroll/delete/<int:id> {% endcomment %}
+
+        $("#table_records").on('click', '.btn_delete', function(event){
+            event.preventDefault()
+            var id = $(this).data('id')
+            $.ajax({
+                type: "GET",
+                url: `/hr/payroll/delete/${id}/`,
+                success: function(response) {
+                    console.log(response)
+                    records = response
+
+                }
+            });
+        })
         $("#table_records").on('click', '.btn_view_details', function(event) {
             var employee_name = $(this).closest('tr').find('.employee_name').text()
             var employee_id = $(this).closest('tr').find('.employee_id').text()
@@ -368,10 +380,7 @@
                 $(row).attr('data-id', data.id);
             }
         });
-        $("#form_search").submit(function(e) {
-            e.preventDefault();
-            var form = $(this);
-            var formData = new FormData(form[0]);
+        function form_search(formData){
             employees_table.clear();
             $.ajax({
                 type: "POST",
@@ -406,12 +415,22 @@
                                     `${gross_pay}`,
                                     `${total_deductions}`,
                                     `${net_pay.toFixed(2)}`,
-                            `<button class="btn btn-success btn_view_details" type="button" data-id="${record.id}">View Details</button>`
+                            `<button class="btn btn-success btn_view_details" type="button" data-id="${record.id}">View Details</button>
+                            <button class="btn btn-danger btn_delete" type="button" data-id="${record.id}">Delete</button>
+                            
+                            `
                         ]).draw();
                         
                     });
                 }
             });
+        }
+
+        $("#form_search").submit(function(e) {
+            e.preventDefault();
+            var form = $(this);
+            var formData = new FormData(form[0]);
+            form_search(formData)
         });
         $("#form_search").trigger('submit');
     });

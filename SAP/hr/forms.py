@@ -1,6 +1,6 @@
 from django import forms
 from biometrics.models import  Attendances
-from . models import NonWorkingDays, Payrolls
+from . models import *
 from django.forms.widgets import DateTimeInput, DateInput, Select, TextInput, NumberInput,SelectDateWidget, CheckboxInput
 from .widgets import MonthYearWidget
 from biometrics.models import Employee, Attendances
@@ -24,26 +24,27 @@ class FilterSalaryForm(forms.Form):
     month_half = forms.ChoiceField(choices=half_choices, widget=Select(attrs={
         'class': 'form-select'
     }))
-
+    
 class AttendanceForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['employee'].queryset = Employee.objects.filter(is_registered=True)
+
     class Meta:
-        # specify model to be used
         model = Attendances
-        # specify fields to be used
         fields = [
             "timestamp",
             "employee",
         ]
         widgets = {
-            'timestamp': DateTimeInput(attrs={
+            'timestamp': forms.DateTimeInput(attrs={
                 'type': 'datetime-local',
                 'class': 'form-control'
             }),
-            'employee': Select(attrs={
+            'employee': forms.Select(attrs={
                 'class': 'form-select'
             })
         }
-        
 class EmployeeForm(forms.ModelForm):
 
 	# create meta class
@@ -133,21 +134,27 @@ class SearchAttendanceForm(forms.ModelForm):
                 
             })
         }
-class NonWorkingDaysForm(forms.ModelForm):
+class EventForms(forms.ModelForm):
 
     class Meta:
-        model = NonWorkingDays
-        fields =[
-            'date',
-            'reason'
-        ]
+        model = Events
+        fields = "__all__"
         widgets = {
-            'date': DateTimeInput(attrs={
+            'start_date': DateTimeInput(attrs={
                 'type': 'date',
                 'class': 'form-control',
                 # 'required': 'false'
             }),
-            'reason': TextInput(attrs={
+            'end_date': DateTimeInput(attrs={
+                'type': 'date',
+                'class': 'form-control',
+                'required': 'false'
+            }),
+            'name': TextInput(attrs={
+                'class': 'form-control',
+                # 'required': 'false'
+            }),
+            'description': TextInput(attrs={
                 'class': 'form-control',
                 # 'required': 'false'
             })

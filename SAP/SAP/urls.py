@@ -16,10 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+import biometrics # Import the device view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('biometrics/', include('biometrics.urls')),
     path('hr/', include('hr.urls')),
-
+    path("accounts/", include("django.contrib.auth.urls")),
+    path("accounts/", include("account.urls")),  # Added a comma at the end
+    path('', biometrics.views.index),  # Use the device view from biometrics app
+    # path("auth/", include("auth.urls")),
 ]
+

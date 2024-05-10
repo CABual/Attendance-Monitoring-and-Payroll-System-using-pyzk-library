@@ -1,9 +1,41 @@
 from django import forms
-from .models import Employee, Attendances
+from .models import Employee, Attendances, Device
 from django.forms.widgets import DateTimeInput, Select, TextInput, NumberInput
 
 
 # creating a form
+class DeviceForm(forms.ModelForm):
+    class Meta:
+        model = Device
+        fields = [
+            'serial_number',
+            'device_name',
+            'ip_address',
+            'port',
+        ]
+
+        widgets = {
+            'serial_number': TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'ex. 1234567890',
+                'disabled': 'true',
+            }),
+            'device_name': TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'ex. ZKTeco 8000',
+                'disabled': 'true',
+            }),
+            'ip_address': TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'ex. 192.168.11.1',
+                'disabled': 'true',
+            }),            
+            'port': NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Default. 4370',
+                'disabled': 'true',
+            }),
+            }
 class EmployeeForm(forms.ModelForm):
 
 	# create meta class

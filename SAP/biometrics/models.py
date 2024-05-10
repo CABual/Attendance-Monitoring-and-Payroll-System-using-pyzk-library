@@ -1,6 +1,15 @@
 from django.db import models
 
 # Create your models here.
+class Device(models.Model):
+    serial_number = models.CharField(max_length=60, null=True)
+    device_name = models.CharField(max_length=60, null=True)
+    ip_address = models.CharField(max_length=50)
+    port = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    
 class Employee(models.Model):
     id = models.BigAutoField(primary_key=True)
     dv_user_id = models.BigIntegerField(unique=True)
