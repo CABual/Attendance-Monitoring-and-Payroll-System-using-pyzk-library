@@ -147,8 +147,7 @@ def download_employees(request):
         saved_employees = list(Employee.objects.all().values_list('dv_user_id', flat= True))
         # print(saved_employees)
         for user in users:
-            # print(user.user_id)
-            
+            # print(user.user_id)dsada
             if user.user_id in list(saved_employees):
                 print(user.user_id)
                 
