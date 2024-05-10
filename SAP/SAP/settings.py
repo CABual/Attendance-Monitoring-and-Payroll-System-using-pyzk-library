@@ -48,10 +48,6 @@ INSTALLED_APPS = [
     # registering the `AuthConfig` class from the `auth` app as an installed application in the
     # project.
     # 'auth.apps.AuthConfig',
-    
-    
-    'jquery',
-
 ]
 
 MIDDLEWARE = [

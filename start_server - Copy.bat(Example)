@@ -1,0 +1,7 @@
+@REM remove the '(examaple)'
+@REM change the URL based on the URL you are using
+@echo off
+call venv\Scripts\activate
+cd SAP
+Start http://127.0.0.1:8000/ 
+python manage.py runserver

@@ -1,5 +1,6 @@
 @echo off
+call venv\Scripts\deactivate
 call venv\Scripts\activate
 cd SAP
-@REM Start http://127.0.0.1:8000/
+Start http://127.0.0.1:8000/
 python manage.py runserver
